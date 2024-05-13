@@ -1,0 +1,44 @@
+@keyframes minimize {
+	0% {
+		clip-path: rect(3px calc(100% - 3px) 23px 3px);
+		transform: translate(var(--x), var(--y));
+		z-index: 1000000;
+	}
+	99.99% {
+		clip-path: rect(3px var(--w2) 23px 3px);
+		transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
+		z-index: 1000000;
+	}
+	100% {
+		clip-path: rect(0 0 0 0);
+	}
+}
+@keyframes restore {
+	0% {
+		clip-path: rect(3px var(--w2) 23px 3px);
+		transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
+		z-index: 1000000;
+	}
+	100% {
+		clip-path: rect(3px calc(100% - 3px) 23px 3px);
+		transform: translate(var(--x), var(--y));
+		z-index: 1000000;
+	}
+}
+
+@each $name in ('maximize', 'unmaximize') {
+	@keyframes #{$name} {
+		to {
+			clip-path: rect(3px calc(100% - 3px) 23px 3px);
+		}
+	}
+}
+
+@for $i from 1 through 4 {
+	@keyframes hide-#{$i} {
+		to {
+			width: 0;
+			clip-path: rect(0 0 0 0);
+		}
+	}
+}

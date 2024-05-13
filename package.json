@@ -1,0 +1,31 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "98.css": "^0.1.20",
+    "clsx": "^2.1.1",
+    "preact": "^10.19.6"
+  },
+  "devDependencies": {
+    "@babel/preset-react": "^7.24.1",
+    "@babel/preset-typescript": "^7.24.1",
+    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "@linaria/core": "^6.2.0",
+    "@preact/preset-vite": "^2.8.2",
+    "@types/node": "^20.12.11",
+    "@wyw-in-js/vite": "^0.5.3",
+    "incstr": "^1.2.3",
+    "postcss": "^8.4.38",
+    "sass": "^1.77.1",
+    "typescript": "^5.2.2",
+    "unplugin-inject-preload": "^2.0.3",
+    "vite": "^5.2.0"
+  }
+}

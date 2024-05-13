@@ -1,0 +1,20 @@
+@import '98.css';
+
+button.focused {
+	outline: 1px dotted #000000;
+	outline-offset: -4px;
+}
+
+button.active {
+	box-shadow: inset -1px -1px #ffffff, inset 1px 1px #0a0a0a,
+	inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+	text-shadow: 1px 1px #222 !important;
+}
+
+.title-bar.inactive .title-bar-text {
+	color: silver;
+}
+
+button[aria-label="Maximize"]:disabled {
+	background-image: url(./assets/images/maximize-disabled.webp);
+}

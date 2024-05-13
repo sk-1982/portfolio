@@ -1,0 +1,28 @@
+:root {
+  background: url(./assets/images/wallpaper.avif) bottom / cover;
+
+  @media (min-width: 2000px) {
+    background: url(./assets/images/wallpaper-smoothed.avif) bottom / cover;
+    image-rendering: smooth;
+  }
+}
+
+:root, body, #app {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 11px;
+  font-family: "Pixelated MS Sans Serif", "MS Sans Serif", "Arial", sans-serif;
+}
+
+* {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: none;
+}
+
+* {
+  cursor: url(./assets/images/default.webp), default;
+  user-select: none;
+}
