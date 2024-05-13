@@ -18,3 +18,12 @@ button.active {
 button[aria-label="Maximize"]:disabled {
 	background-image: url(./assets/images/maximize-disabled.webp);
 }
+
+.status-bar {
+	margin-bottom: 1px;
+	gap: 2px;
+}
+
+.status-bar-field {
+	box-shadow: inset -1px -1px #fff,inset 1px 1px gray;
+}

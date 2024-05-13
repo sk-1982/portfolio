@@ -13,6 +13,8 @@ import cn from 'clsx/lite';
 import win98 from '@98.css';
 import './window.scss';
 import { taskbarZIndex } from '@/css';
+import cursor from '@/cursor.module.scss';
+import resizeHandle from '@images/resize-handle.webp';
 
 const controls = css``;
 
@@ -32,6 +34,8 @@ const windowClass = css`
 	animation: var(--minimize), var(--maximize), var(--restore), var(--unmaximize);
   transition-property: top, right, left, bottom, width;
   transition: .25s steps(10);
+	display: flex;
+	flex-direction: column;
 	
 	.${controls} {
 		animation-name: var(--hide-1), var(--hide-2), var(--hide-3);
@@ -57,7 +61,7 @@ const windowUnmaximize = css`
 `;
 
 const windowMaximize = css`
-	bottom: -3px;
+	bottom: 22px;
 	height: auto !important;
 	width: 100% !important;
 	transition-property: top, right, left, bottom, width;
@@ -116,6 +120,76 @@ const titleBarText = css`
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+`;
+
+const handle = css`
+	position: absolute;
+	z-index: 1000000;
+`;
+
+const handleTopBottom = css`
+	height: 4px;
+	left: 19px;
+	right: 19px;
+`;
+
+const handleLeftRight = css`
+	width: 4px;
+	top: 19px;
+	bottom: 19px;
+`;
+
+const handleCorner = css`
+	width: 20px;
+	height: 20px;
+`;
+
+const handleN = css`
+	top: -1px;
+`;
+
+const handleS = css`
+	bottom: -1px;
+`;
+
+const handleW = css`
+	left: -1px;
+`;
+
+const handleE = css`
+	right: -1px;
+`;
+
+const handleNW = css`
+	top: -1px;
+	left: -1px;
+	clip-path: polygon(0 0, 100% 0, 100% 4px, 4px 4px, 4px 100%, 0 100%);
+`;
+
+const handleNE = css`
+	top: -1px;
+	right: -1px;
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 16px 100%, 16px 4px, 0 4px);
+`;
+
+const handleSW = css`
+	bottom: -1px;
+	left: -1px;
+	clip-path: polygon(0 0, 4px 0, 4px 16px, 100% 16px, 100% 100%, 0 100%);
+`;
+
+const handleSE = css`
+	bottom: -1px;
+	right: -1px;
+	clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%, 0 16px, 16px 16px);
+`;
+
+const handleStripes = css`
+	bottom: 3px;
+	right: 3px;
+	width: 13px;
+	height: 13px;
+	background: url(${resizeHandle});
 `;
 
 type Window = {
@@ -216,10 +290,36 @@ type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | '
 	children: ComponentChildren,
 	isOpen: boolean,
 	windowingStrategy?: 'dom' | 'display',
-	onClose: () => void
+	onClose: () => void,
+	className?: string,
+	cornerHandle?: boolean
 };
 
-export const Window = ({ children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
+type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
+
+const RESIZE_CLASSES: Record<Direction, string> = {
+	n: `${handleN} ${handleTopBottom} ${cursor.nsResize}`,
+	s: `${handleS} ${handleTopBottom} ${cursor.nsResize}`,
+	e: `${handleE} ${handleLeftRight} ${cursor.ewResize}`,
+	w: `${handleW} ${handleLeftRight} ${cursor.ewResize}`,
+	nw: `${handleNW} ${handleCorner} ${cursor.nwseResize}`,
+	ne: `${handleNE} ${handleCorner} ${cursor.neswResize}`,
+	sw: `${handleSW} ${handleCorner} ${cursor.neswResize}`,
+	se: `${handleSE} ${handleCorner} ${cursor.nwseResize}`
+};
+
+const RESIZE_DIRECTION: Record<Direction, [number, number]> = {
+	n: [0, -1],
+	s: [0, 1],
+	e: [1, 0],
+	w: [-1, 0],
+	nw: [-1, -1],
+	ne: [1, -1],
+	sw: [-1, 1],
+	se: [1, 1]
+};
+
+export const Window = ({ className, cornerHandle, children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
 	initialX = initialX < 0 ? window.innerWidth / 2 - initialWidth / 2 : initialX;
@@ -232,6 +332,7 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 	const [maximized, _setMaximized] = useState(!!initialMaximized);
 	const [isMoving, setMoving] = useState(false);
 	const [disableAnimations, setDisableAnimations] = useState(false);
+	const [resizingDirection, setResizingDirection] = useState<null | Direction>(null);
 	const titleBarRef = useRef<HTMLDivElement | null>(null);
 
 	const setMaximized = useCallback((val: StateUpdater<boolean>) => {
@@ -297,8 +398,6 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 			context.updateWindow({ title, icon, width, height, x, y, id, maximized, minimized, setMinimized, setMaximized, ref });
 	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, setMinimizedRestoreState, ref]);
 
-	const lastUpdate = useRef(Date.now());
-
 	useEffect(() => {
 		const resizeListener = () => {
 			setDisableAnimations(true);
@@ -313,23 +412,85 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 	}, [x, y, width, height]);
 
 	useEffect(() => {
-		if (!isMoving) return;
+		if (!isMoving && !resizingDirection) return;
 
-		const mouseMove = (event: MouseEvent) => {
-			if (Date.now() - lastUpdate.current <= 25) return;
-			lastUpdate.current = Date.now();
+		const clampSize = <T extends Partial<{ x: number, y: number, width: number, height: number }>>(sizes: T): { [K in keyof T]-?: T[K] & number } => {
+			if (sizes.x !== undefined)
+				sizes.x = Math.max(Math.min(sizes.x, window.innerWidth - 20), -(sizes.width ?? prevWindow.current.width) + 72);
+			if (sizes.y !== undefined)
+				sizes.y = Math.max(Math.min(sizes.y, window.innerHeight - 42), 0);
+			if (sizes.width !== undefined)
+				sizes.width = Math.max(sizes.width, minWidth! >= 0 ? minWidth! : 32);
+			if (sizes.height !== undefined)
+				sizes.height = Math.max(sizes.height, minHeight! >= 0 ? minHeight! : 32);
+
+			return sizes as any;
+		};
+
+		const moveSize = (event: MouseEvent) => clampSize({ x: event.clientX - dragStart.current.x + prevWindow.current.x,
+			y: event.clientY - dragStart.current.y + prevWindow.current.y });
+
+		const resizeSize = (event: MouseEvent) => {
+			const [xDirection, yDirection] = RESIZE_DIRECTION[resizingDirection!];
+			const xOffset = event.clientX - dragStart.current.x;
+			const yOffset = event.clientY - dragStart.current.y;
+
+			const sizes = { ...prevWindow.current };
+
+			sizes.width += xOffset * xDirection;
+			if (xDirection === -1)
+				sizes.x += xOffset;
+
+			sizes.height += yOffset * yDirection;
+			if (yDirection === -1)
+				sizes.y += yOffset;
+
+			return clampSize(sizes);
+		};
+
+		const mouseMoveMoving = (event: MouseEvent) => {
 			updatePreview(previewRef, {
-				x: event.clientX - dragStart.current.x + prevWindow.current.x,
-				y: event.clientY - dragStart.current.y + prevWindow.current.y,
+				...moveSize(event),
 				width: prevWindow.current.width,
 				height: prevWindow.current.height
 			});
 		};
+
+		const mouseUpMoving = (event: MouseEvent) => {
+			const { x, y } = moveSize(event);
+			setX(x);
+			setY(y);
+			setMoving(false);
+		};
+
+		const mouseMoveResizing = (event: MouseEvent) => {
+			updatePreview(previewRef, resizeSize(event));
+		};
+
+		const mouseUpResizing = (event: MouseEvent) => {
+			const { x, y, width, height } = resizeSize(event);
+			setX(x);
+			setY(y);
+			setWidth(width);
+			setHeight(height);
+			setResizingDirection(null);
+			delete document.body.dataset.direction;
+		};
+
+		const mouseMove = (event: MouseEvent) => {
+			if (isMoving)
+				mouseMoveMoving(event);
+			else
+				mouseMoveResizing(event);
+		};
 		const mouseUp = (event: MouseEvent) => {
 			setDisableAnimations(true);
-			setX(Math.max(Math.min(event.clientX - dragStart.current.x + prevWindow.current.x, window.innerWidth - 20), -prevWindow.current.width + 72));
-			setY(Math.max(Math.min(event.clientY - dragStart.current.y + prevWindow.current.y, window.innerHeight - 42), 0));
-			setMoving(false);
+
+			if (isMoving)
+				mouseUpMoving(event);
+			else
+				mouseUpResizing(event);
+
 			setTimeout(() => setDisableAnimations(false), 0);
 		};
 
@@ -340,10 +501,39 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 			document.removeEventListener('mousemove', mouseMove);
 			document.removeEventListener('mouseup', mouseUp);
 		}
-	}, [isMoving]);
+	}, [isMoving, resizingDirection, minWidth, minHeight]);
 
 	if (!isOpen && windowingStrategy === 'dom')
 		return null;
+
+	const updatePrevWindowLayout = useCallback((e: MouseEvent) => {
+		dragStart.current.x = e.clientX;
+		dragStart.current.y = e.clientY;
+		prevWindow.current.x = x;
+		prevWindow.current.y = y;
+		prevWindow.current.width = width;
+		prevWindow.current.height = height;
+	}, [x, y, width, height]);
+
+	const resizeHandles = useMemo(() => {
+		if (!resizable || maximized) return null;
+
+		const resize = (direction: Direction) => ({ onMouseDown: (e: MouseEvent) => {
+			if (resizingDirection) return;
+			context.setActiveWindow(id);
+			if (e.button !== 0 || !e.target) return;
+			updatePrevWindowLayout(e);
+			setResizingDirection(direction);
+			document.body.dataset.direction = direction;
+		}});
+
+		return (<>
+			{(Object.entries(RESIZE_CLASSES) as [Direction, string][])
+				.map(([direction, c]) => (<div key={direction} {...resize(direction)} className={`${handle} ${c}`} />))}
+
+			{cornerHandle && <div className={`${handle} ${handleStripes} ${cursor.nwseResize}`} {...resize('se')} />}
+		</>);
+	}, [resizable, maximized, cornerHandle, resizingDirection, context, id, updatePrevWindowLayout]);
 
 	const windowElement = useMemo(() => {
 		const isMaximized = maximized && resizable;
@@ -362,6 +552,7 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 
 		return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize, (isMoving || disableAnimations) && windowNoTransition)}
 		             style={style} ref={ref}>
+			{ resizeHandles }
 			<div class={cn(win98.titleBar, titleBar, context.activeWindow !== id && restoreState !== windowMinimize && win98.inactive)}
 			     ref={titleBarRef}
 			     onMouseDown={e => {
@@ -370,14 +561,7 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 				     if (isMaximized || e.button !== 0 || !e.target) return;
 				     const target = e.target as HTMLElement;
 						 if (target.tagName === 'BUTTON' || target.classList.contains(win98.titleBarControls)) return;
-				     dragStart.current.x = e.clientX;
-				     dragStart.current.y = e.clientY;
-						 prevWindow.current.x = x;
-						 prevWindow.current.y = y;
-						 prevWindow.current.width = width;
-						 prevWindow.current.height = height;
-						 const bounding = ref.current?.getBoundingClientRect();
-						 if (!bounding) return;
+				     updatePrevWindowLayout(e);
 				     setMoving(true);
 			     }}>
 				{icon && <div className={titleBarIcon}>
@@ -397,16 +581,17 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 			</div>
 			{ children }
 		</div>);
-	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, setMoving, icon, setMinimized, setMaximized, children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations]);
+	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, setMoving, icon, setMinimized, setMaximized,
+		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, resizeHandles, updatePrevWindowLayout]);
 
 	const preview = useMemo(() => {
-		if (!isMoving) return null;
+		if (!isMoving && !resizingDirection) return null;
 
 		return (<div className={windowPlaceholder} ref={e => {
 			previewRef.current = e;
 			updatePreview(previewRef, prevWindow.current);
 		}} />);
-	}, [isMoving]);
+	}, [isMoving, resizingDirection]);
 
 	return (<>
 		{preview}

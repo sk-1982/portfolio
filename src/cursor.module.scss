@@ -1,0 +1,15 @@
+.ns-resize, body[data-direction="n"] *, body[data-direction="s"] *  {
+	cursor: url(./assets/images/ns-resize.webp) 4 10, ns-resize;
+}
+
+.ew-resize, body[data-direction="e"] *, body[data-direction="w"] *  {
+	cursor: url(./assets/images/ew-resize.webp) 10 4, ew-resize;
+}
+
+.nwse-resize, body[data-direction="nw"] *, body[data-direction="se"] *  {
+	cursor: url(./assets/images/nwse-resize.webp) 7 7, nwse-resize;
+}
+
+.nesw-resize, body[data-direction="ne"] *, body[data-direction="sw"] * {
+	cursor: url(./assets/images/nesw-resize.webp) 7 7, nesw-resize;
+}
