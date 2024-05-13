@@ -32,8 +32,9 @@ const windowClass = css`
 	top: 0;
 	left: 0;
 	animation: var(--minimize), var(--maximize), var(--restore), var(--unmaximize);
-  transition-property: top, right, left, bottom, width;
-  transition: .25s steps(10);
+  transition-property: top, right, left, bottom, width, transform;
+  transition-duration: .25s;
+	transition-timing-function: steps(10);
 	display: flex;
 	flex-direction: column;
 	
@@ -64,8 +65,6 @@ const windowMaximize = css`
 	bottom: 22px;
 	height: auto !important;
 	width: 100% !important;
-	transition-property: top, right, left, bottom, width;
-	transition: .25s steps(10);
   --maximize: maximize .25s 1 steps(2, start);
 	--unmaximize: none;
 	--hide-3: hide-4;
@@ -269,7 +268,7 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 		return [
 			activationOrder.filter(order => !windowMap[order]?.minimized),
 			activationOrder.reduce((order, id, i) => {
-				order[id] = i;
+				order[id] = activationOrder.length - i;
 				return order;
 			}, {} as Record<string, number>)
 		];
@@ -331,6 +330,7 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 	const [shouldAnimateUnmaximize, setShouldAnimateUnmaximize] = useState(false);
 	const [maximized, _setMaximized] = useState(!!initialMaximized);
 	const [isMoving, setMoving] = useState(false);
+	const [shouldMove, setShouldMove] = useState(false);
 	const [disableAnimations, setDisableAnimations] = useState(false);
 	const [resizingDirection, setResizingDirection] = useState<null | Direction>(null);
 	const titleBarRef = useRef<HTMLDivElement | null>(null);
@@ -412,7 +412,7 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 	}, [x, y, width, height]);
 
 	useEffect(() => {
-		if (!isMoving && !resizingDirection) return;
+		if (!isMoving && !resizingDirection && !shouldMove) return;
 
 		const clampSize = <T extends Partial<{ x: number, y: number, width: number, height: number }>>(sizes: T): { [K in keyof T]-?: T[K] & number } => {
 			if (sizes.x !== undefined)
@@ -420,7 +420,7 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			if (sizes.y !== undefined)
 				sizes.y = Math.max(Math.min(sizes.y, window.innerHeight - 42), 0);
 			if (sizes.width !== undefined)
-				sizes.width = Math.max(sizes.width, minWidth! >= 0 ? minWidth! : 32);
+				sizes.width = Math.max(sizes.width, Math.max(110, minWidth ?? 0));
 			if (sizes.height !== undefined)
 				sizes.height = Math.max(sizes.height, minHeight! >= 0 ? minHeight! : 32);
 
@@ -478,13 +478,22 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 		};
 
 		const mouseMove = (event: MouseEvent) => {
-			if (isMoving)
+			if (shouldMove) {
+				if (Math.abs(dragStart.current.x - event.clientX) + Math.abs(dragStart.current.y - event.clientY) > 4) {
+					setMoving(true);
+					setShouldMove(false);
+					updatePreview(previewRef, prevWindow.current);
+				}
+			} else if (isMoving) {
 				mouseMoveMoving(event);
-			else
+			} else {
 				mouseMoveResizing(event);
+			}
 		};
+
 		const mouseUp = (event: MouseEvent) => {
 			setDisableAnimations(true);
+			setShouldMove(false);
 
 			if (isMoving)
 				mouseUpMoving(event);
@@ -501,7 +510,7 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			document.removeEventListener('mousemove', mouseMove);
 			document.removeEventListener('mouseup', mouseUp);
 		}
-	}, [isMoving, resizingDirection, minWidth, minHeight]);
+	}, [isMoving, resizingDirection, minWidth, minHeight, shouldMove]);
 
 	if (!isOpen && windowingStrategy === 'dom')
 		return null;
@@ -542,7 +551,8 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			'--x': `${isMaximized ? -3 : x}px`,
 			'--y': `${isMaximized ? -3 : y}px`,
 			'--x2': `${taskbarX}px`,
-			'--w2': `${taskbarWidth}px`
+			'--w2': `${taskbarWidth}px`,
+			zIndex: `${(context.activationOrder[id]! + 1) * 10}`
 		};
 
 		if (width >= 0)
@@ -551,18 +561,18 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			style.height = `${height}px`;
 
 		return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize, (isMoving || disableAnimations) && windowNoTransition)}
-		             style={style} ref={ref}>
+		             style={style} ref={ref} onMouseDown={() => context.setActiveWindow(id)}>
 			{ resizeHandles }
 			<div class={cn(win98.titleBar, titleBar, context.activeWindow !== id && restoreState !== windowMinimize && win98.inactive)}
 			     ref={titleBarRef}
 			     onMouseDown={e => {
-						 if (isMoving) return;
+						 if (isMoving || shouldMove) return;
 				     context.setActiveWindow(id);
 				     if (isMaximized || e.button !== 0 || !e.target) return;
 				     const target = e.target as HTMLElement;
 						 if (target.tagName === 'BUTTON' || target.classList.contains(win98.titleBarControls)) return;
+				     setShouldMove(true);
 				     updatePrevWindowLayout(e);
-				     setMoving(true);
 			     }}>
 				{icon && <div className={titleBarIcon}>
             <img src={icon} alt="" />
@@ -581,8 +591,8 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			</div>
 			{ children }
 		</div>);
-	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, setMoving, icon, setMinimized, setMaximized,
-		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, resizeHandles, updatePrevWindowLayout]);
+	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized, context.activationOrder,
+		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, resizeHandles, shouldMove, updatePrevWindowLayout]);
 
 	const preview = useMemo(() => {
 		if (!isMoving && !resizingDirection) return null;

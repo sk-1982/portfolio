@@ -19,6 +19,14 @@ export function App() {
         </div>
 
     </Window>
+    <Window title="Abcdefgh" width={200} height={100} id="test2" x={20} y={20} resizable icon={iexploreSmall} isOpen={isOpen} windowingStrategy="dom" onClose={() => setOpen(false)} className={css`display: flex`}>
+      test
+      <div className={win98.statusBar + ' ' + css`margin-top: auto`}>
+        <div className={win98.statusBarField}>test</div>
+        <div className={win98.statusBarField}>test</div>
+      </div>
+
+    </Window>
     <Taskbar/>
   </Providers>);
 }
