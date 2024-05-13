@@ -12,6 +12,7 @@ import { css } from '@linaria/core';
 import cn from 'clsx/lite';
 import win98 from '@98.css';
 import './window.scss';
+import { taskbarZIndex } from '@/css';
 
 const controls = css``;
 
@@ -70,6 +71,28 @@ const windowHidden = css`
 	display: none;
 `;
 
+const windowPlaceholder = css`
+	display: flex;
+  background: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%) 0 / 2px 2px;
+	position: fixed;
+	z-index: ${taskbarZIndex - 1};
+	mix-blend-mode: difference;
+	left: 0;
+	top: 0;
+	pointer-events: none;
+	
+	&::after {
+    content: " ";
+    margin: 4px;
+    background: black;
+    flex-grow: 1;
+	}
+`;
+
+const windowNoTransition = css`
+	transition: none !important;
+`;
+
 const titleIcon = css`
 	margin-left: 18px;
 `;
@@ -86,6 +109,7 @@ const titleBarIcon = css`
 	display: grid;
 	align-items: center;
 	width: 16px;
+	pointer-events: none;
 `;
 
 const titleBarText = css`
@@ -130,6 +154,15 @@ const WindowContext = createContext<{
 }>({ createWindow: () => {}, removeWindow: () => {}, updateWindow: () => {}, windows: [], activeWindow: null, setActiveWindow: () => {}, activationOrder: {} });
 
 export const useWindows = () => useContext(WindowContext);
+
+const updatePreview = (ref: MutableRef<HTMLElement | null>, pos: { x: number, y: number, width: number, height: number }) => {
+	const elem = ref.current;
+	if (!elem) return;
+
+	elem.style.width = `${pos.width + 6}px`;
+	elem.style.height = `${pos.height + 6}px`;
+	elem.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+}
 
 export const WindowContextProvider = ({ children }: { children: ComponentChildren }) => {
 	const [windows, setWindows] = useState<ContextWindow[]>([]);
@@ -186,15 +219,21 @@ type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | '
 	onClose: () => void
 };
 
-export const Window = ({ children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen, windowingStrategy = 'dom', onClose }: WindowProps) => {
+export const Window = ({ children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
+	initialX = initialX < 0 ? window.innerWidth / 2 - initialWidth / 2 : initialX;
+	initialY = initialY < 0 ? window.innerHeight / 2 - initialHeight / 2 : initialY;
 	const [x, setX] = useState(initialX);
 	const [y, setY] = useState(initialY);
 	const [width, setWidth] = useState(initialWidth);
 	const [height, setHeight] = useState(initialHeight);
 	const [shouldAnimateUnmaximize, setShouldAnimateUnmaximize] = useState(false);
 	const [maximized, _setMaximized] = useState(!!initialMaximized);
+	const [isMoving, setMoving] = useState(false);
+	const [disableAnimations, setDisableAnimations] = useState(false);
+	const titleBarRef = useRef<HTMLDivElement | null>(null);
+
 	const setMaximized = useCallback((val: StateUpdater<boolean>) => {
 		setShouldAnimateUnmaximize(true);
 		return _setMaximized(val);
@@ -225,6 +264,9 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 	const [taskbarX, setTaskbarX] = useState<number>(-1);
 	const [taskbarWidth, setTaskbarWidth] = useState<number>(-1);
 	const ref = useRef<HTMLDivElement | null>(null);
+	const dragStart = useRef({ x: 0, y: 0 });
+	const prevWindow = useRef({ x: 0, y: 0, width: 0, height: 0 });
+	const previewRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		if (lastOpen.current === isOpen) return;
@@ -235,13 +277,16 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 			setWidth(initialWidth);
 			setHeight(initialHeight);
 			setShouldAnimateUnmaximize(false);
+			setX(initialX);
+			setY(initialY);
 			return context.removeWindow(id);
 		}
 		context.createWindow({
 			title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, ref, setTaskbarWidth, setTaskbarX
 		});
 		context.setActiveWindow(id);
-	}, [ref, lastOpen, isOpen, context.createWindow, context.removeWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, setTaskbarX, setTaskbarWidth, setMinimizedRestoreState, initialWidth, initialHeight, setShouldAnimateUnmaximize]);
+	}, [ref, lastOpen, isOpen, context.createWindow, context.removeWindow, title, icon, width, height, x, y, id, maximized, minimized, initialX, initialY,
+		setMaximized, setMinimized, setTaskbarX, setTaskbarWidth, setMinimizedRestoreState, initialWidth, initialHeight, setShouldAnimateUnmaximize]);
 
 	useEffect(() => {
 		return () => context.removeWindow(id);
@@ -252,41 +297,119 @@ export const Window = ({ children, title, icon, width: initialWidth = -1, height
 			context.updateWindow({ title, icon, width, height, x, y, id, maximized, minimized, setMinimized, setMaximized, ref });
 	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, setMinimizedRestoreState, ref]);
 
+	const lastUpdate = useRef(Date.now());
+
+	useEffect(() => {
+		const resizeListener = () => {
+			setDisableAnimations(true);
+			setX(Math.max(Math.min(x, window.innerWidth - 20), -width + 72));
+			setY(Math.max(Math.min(y, window.innerHeight - 42), 0));
+			setTimeout(() => setDisableAnimations(false), 0);
+		};
+
+		window.addEventListener('resize', resizeListener);
+
+		return () => window.removeEventListener('resize', resizeListener);
+	}, [x, y, width, height]);
+
+	useEffect(() => {
+		if (!isMoving) return;
+
+		const mouseMove = (event: MouseEvent) => {
+			if (Date.now() - lastUpdate.current <= 25) return;
+			lastUpdate.current = Date.now();
+			updatePreview(previewRef, {
+				x: event.clientX - dragStart.current.x + prevWindow.current.x,
+				y: event.clientY - dragStart.current.y + prevWindow.current.y,
+				width: prevWindow.current.width,
+				height: prevWindow.current.height
+			});
+		};
+		const mouseUp = (event: MouseEvent) => {
+			setDisableAnimations(true);
+			setX(Math.max(Math.min(event.clientX - dragStart.current.x + prevWindow.current.x, window.innerWidth - 20), -prevWindow.current.width + 72));
+			setY(Math.max(Math.min(event.clientY - dragStart.current.y + prevWindow.current.y, window.innerHeight - 42), 0));
+			setMoving(false);
+			setTimeout(() => setDisableAnimations(false), 0);
+		};
+
+		document.addEventListener('mousemove', mouseMove);
+		document.addEventListener('mouseup', mouseUp);
+
+		return () => {
+			document.removeEventListener('mousemove', mouseMove);
+			document.removeEventListener('mouseup', mouseUp);
+		}
+	}, [isMoving]);
+
 	if (!isOpen && windowingStrategy === 'dom')
 		return null;
 
-	const isMaximized = maximized && resizable;
+	const windowElement = useMemo(() => {
+		const isMaximized = maximized && resizable;
 
-	const style: Record<string, string> = {
-		'--x': `${isMaximized ? -3 : x}px`,
-		'--y': `${isMaximized ? -3 : y}px`,
-		'--x2': `${taskbarX}px`,
-		'--w2': `${taskbarWidth}px`
-	};
+		const style: Record<string, string> = {
+			'--x': `${isMaximized ? -3 : x}px`,
+			'--y': `${isMaximized ? -3 : y}px`,
+			'--x2': `${taskbarX}px`,
+			'--w2': `${taskbarWidth}px`
+		};
 
-	if (width >= 0)
-		style.width = `${width}px`;
-	if (height >= 0)
-		style.height = `${height}px`;
+		if (width >= 0)
+			style.width = `${width}px`;
+		if (height >= 0)
+			style.height = `${height}px`;
 
-	return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize)}
-	             style={style} ref={ref}>
-		<div class={cn(win98.titleBar, titleBar, context.activeWindow !== id && restoreState !== windowMinimize && win98.inactive)} onMouseDown={() => context.setActiveWindow(id)}>
-			{icon && <div className={titleBarIcon}>
-					<img src={icon} alt="" />
-			</div>}
+		return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize, (isMoving || disableAnimations) && windowNoTransition)}
+		             style={style} ref={ref}>
+			<div class={cn(win98.titleBar, titleBar, context.activeWindow !== id && restoreState !== windowMinimize && win98.inactive)}
+			     ref={titleBarRef}
+			     onMouseDown={e => {
+						 if (isMoving) return;
+				     context.setActiveWindow(id);
+				     if (isMaximized || e.button !== 0 || !e.target) return;
+				     const target = e.target as HTMLElement;
+						 if (target.tagName === 'BUTTON' || target.classList.contains(win98.titleBarControls)) return;
+				     dragStart.current.x = e.clientX;
+				     dragStart.current.y = e.clientY;
+						 prevWindow.current.x = x;
+						 prevWindow.current.y = y;
+						 prevWindow.current.width = width;
+						 prevWindow.current.height = height;
+						 const bounding = ref.current?.getBoundingClientRect();
+						 if (!bounding) return;
+				     setMoving(true);
+			     }}>
+				{icon && <div className={titleBarIcon}>
+            <img src={icon} alt="" />
+        </div>}
 
-			<div class={cn(win98.titleBarText, titleBarText, icon && titleIcon)}>
-				{ title }
+				<div class={cn(win98.titleBarText, titleBarText, icon && titleIcon)}>
+					{ title }
+				</div>
+
+				<div class={`${win98.titleBarControls} ${controls}`}>
+					<button aria-label="Minimize" onClick={() => setMinimized(true)} />
+					{isMaximized ? <button aria-label="Restore" onClick={() => setMaximized(false)} /> :
+						<button aria-label="Maximize" disabled={!resizable} onClick={() => setMaximized(true)} />}
+					<button aria-label="Close" onClick={onClose} />
+				</div>
 			</div>
+			{ children }
+		</div>);
+	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, setMoving, icon, setMinimized, setMaximized, children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations]);
 
-			<div class={`${win98.titleBarControls} ${controls}`}>
-				<button aria-label="Minimize" onClick={() => setMinimized(true)} />
-				{isMaximized ? <button aria-label="Restore" onClick={() => setMaximized(false)} /> :
-					<button aria-label="Maximize" disabled={!resizable} onClick={() => setMaximized(true)} />}
-				<button aria-label="Close" onClick={onClose} />
-			</div>
-		</div>
-		{ children }
-	</div>);
+	const preview = useMemo(() => {
+		if (!isMoving) return null;
+
+		return (<div className={windowPlaceholder} ref={e => {
+			previewRef.current = e;
+			updatePreview(previewRef, prevWindow.current);
+		}} />);
+	}, [isMoving]);
+
+	return (<>
+		{preview}
+		{windowElement}
+	</>);
 };

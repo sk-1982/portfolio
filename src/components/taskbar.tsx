@@ -97,7 +97,7 @@ const taskbarItem = css`
 	}
 		
 	&.${selected} {
-    background: repeating-conic-gradient(silver 0% 25%, #fff 0% 50%) 50% / 2px 2px;
+    background: repeating-conic-gradient(silver 0% 25%, #fff 0% 50%) 0 / 2px 2px;
     font-weight: bold;
 	}
 `;

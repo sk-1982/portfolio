@@ -31,7 +31,8 @@ export default defineConfig(env => ({
       '@98.css': path.resolve(__dirname, './src/98.module.scss'),
       '@': path.resolve(__dirname, './src/'),
       'react': 'preact/compat',
-      'react-dom': 'preact/compat'
+      'react-dom': 'preact/compat',
+      'preact/debug': 'preact'
     }
   },
   css: {

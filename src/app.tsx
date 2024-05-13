@@ -9,7 +9,7 @@ export function App() {
 
   return (<Providers>
     <button onClick={() => setOpen(o => !o)}>{isOpen ? 'Close' : 'Open'}</button>
-    <Window title="Tes test test tse tsetsetest test set t sdf sdf sd" width={200} height={100} resizable id="test" x={20} y={20} icon={iexploreSmall} isOpen={isOpen} windowingStrategy="display" onClose={() => setOpen(false)}> test</Window>
+    <Window title="Tes test test tse tsetsetest test set t sdf sdf sd" width={200} height={100} resizable id="test" x={20} y={20} icon={iexploreSmall} isOpen={isOpen} windowingStrategy="dom" onClose={() => setOpen(false)}> test</Window>
     <Taskbar />
   </Providers>);
 }
