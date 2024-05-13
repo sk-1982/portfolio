@@ -1,5 +1,6 @@
 import { ComponentChildren, createContext } from 'preact';
-import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
+import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
+import { ContextWindow, useWindows, Window, WindowProps } from './window.tsx';
 
 type Program = {
 	name: string,
@@ -11,6 +12,8 @@ const ProgramContext = createContext<{
 	unregister: (name: string) => void,
 	openProgram: (name: string, ...args: string[]) => void,
 }>({ register: () => {}, unregister: () => {}, openProgram: () => {} });
+
+export const usePrograms = () => useContext(ProgramContext);
 
 export const ProgramContextProvider = ({ children }: { children: ComponentChildren }) => {
 	const [programList, setProgramList] = useState<Program[]>([]);
@@ -44,5 +47,23 @@ export const Program = ({ name, onOpen, children }: ProgramProps) => {
 		return () => context.unregister(name);
 	}, [context.register, context.unregister]);
 
-	return children;
+	return (<>{ children }</>);
+};
+
+type SimpleProgramProps = { name: string } & Omit<WindowProps, 'isOpen' | 'onClose' | 'id'>;
+
+export const SimpleProgram = ({ name, children, ...windowProps }: SimpleProgramProps) => {
+	const [isOpen, setOpen] = useState(false);
+	const windows = useWindows();
+	const ref = useRef<ContextWindow | null>(null);
+
+	return (<Program name={name} onOpen={() => {
+		setOpen(true);
+		windows.setActiveWindow(name);
+		if (ref.current?.minimized) ref.current?.setMinimized(false);
+	}}>
+		<Window isOpen={isOpen} onClose={() => setOpen(false)} {...windowProps} id={name} contextRef={ref}>
+			{ children }
+		</Window>
+	</Program>);
 };

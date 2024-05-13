@@ -7,6 +7,7 @@ import { ChevronRight } from './chevron-right.tsx';
 import { selected, taskbarZIndex } from '@/css';
 import cn from 'clsx/lite';
 import { useHoverCloser, useHoverTrigger } from '../hooks/use-hover-closer.ts';
+import { usePrograms } from './program.tsx';
 
 const sideMenu = css`
 	transition: 0s;
@@ -38,8 +39,10 @@ const sideMenuItem = css`
 	align-items: center;
 	padding: 0 6px 0 2px;
 	color: #222;
-		
-	&:hover, &.${selected} {
+	text-decoration: none;
+  color: #222;
+
+  &:hover, &.${selected} {
 		background: #000080;
 		color: #fff;
 	}
@@ -60,7 +63,9 @@ export type SideMenuItem = {
 	icon: string,
 	name: string,
 	children?: SideMenuItem[],
-	onClick?: () => void
+	onClick?: () => void,
+	launch?: string[],
+	link?: string,
 } | '|';
 
 type SideMenuProps = {
@@ -72,6 +77,8 @@ type SideMenuProps = {
 };
 
 const SideMenuItem = ({ item, onItemSelected }: { item: SideMenuItem & object, onItemSelected?: () => void }) => {
+	const programs = usePrograms();
+
 	const contents = (<>
 		<div className={iconContainer}>
 			<img alt="" src={item.icon}/>
@@ -89,11 +96,24 @@ const SideMenuItem = ({ item, onItemSelected }: { item: SideMenuItem & object, o
 			{ contents }
 		</SideMenu>);
 
-	return (<div className={sideMenuItem} onClick={e => {
-		item.onClick?.();
-		onItemSelected?.();
-		e.stopPropagation();
-	}} {...triggers}>
+	const props = {
+		className: sideMenuItem,
+		onClick: (e: MouseEvent) => {
+			item.onClick?.();
+			onItemSelected?.();
+			if (item.launch?.length)
+				programs.openProgram(item.launch[0], ...item.launch.slice(1));
+			e.stopPropagation();
+		},
+		...triggers
+	};
+
+	if (item.link)
+		return (<a {...props} target="_blank" href={item.link} rel="noopener noreferrer">
+			{ contents }
+		</a>);
+
+	return (<div {...props}>
 		{ contents }
 	</div>);
 };

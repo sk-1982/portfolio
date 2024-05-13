@@ -163,7 +163,18 @@ export const Taskbar = () => {
 			<StartMenu className={isOpen ? startMenuOpen : startMenu} onClose={() => setIsOpen(false)} />
 		</div>
 
-		<div className={taskbar}>
+		<div className={taskbar} onMouseDown={e => {
+			let elem = e.target as HTMLElement | null;
+			if (!elem) return;
+
+			while (elem) {
+				if (elem.classList.contains(taskbarItem))
+					return;
+				elem = elem.parentElement;
+			}
+
+			windows.setActiveWindow(null);
+		}}>
 			<div>
 				<button className={cn(startButton, isOpen && win98.active)} onClick={() => setIsOpen(o => !o)}>
 					<img src={startFlag} alt="" />

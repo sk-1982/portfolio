@@ -239,7 +239,7 @@ const updatePreview = (ref: MutableRef<HTMLElement | null>, pos: { x: number, y:
 
 export const WindowContextProvider = ({ children }: { children: ComponentChildren }) => {
 	const [windows, setWindows] = useState<ContextWindow[]>([]);
-	const [activationOrder, setActivationOrder] = useState<string[]>([]);
+	const [activationOrder, setActivationOrder] = useState<(string | null)[]>([]);
 
 	const createWindow = useCallback((window: ContextWindow) => {
 		setWindows(w => [...w, window]);
@@ -255,8 +255,7 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 	}, [setWindows, setActivationOrder]);
 
 	const setActiveWindow = useCallback((id: string | null) => {
-		if (id !== null)
-			setActivationOrder(o => [id, ...o.filter(o => o !== id)])
+		setActivationOrder(o => [id, ...o.filter(o => o && o !== id)])
 	}, [setActivationOrder]);
 
 	const [openWindowActivationOrder, activationOrderMap] = useMemo(() => {
@@ -266,8 +265,9 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 		}, {} as Record<string, ContextWindow>);
 
 		return [
-			activationOrder.filter(order => !windowMap[order]?.minimized),
+			activationOrder.filter(order => order ? !windowMap[order]?.minimized : true),
 			activationOrder.reduce((order, id, i) => {
+				if (!id) return order;
 				order[id] = activationOrder.length - i;
 				return order;
 			}, {} as Record<string, number>)
@@ -279,7 +279,7 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 	</WindowContext.Provider>)
 };
 
-type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | 'minimized'> & {
+export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | 'minimized'> & {
 	x?: number,
 	y?: number,
 	width?: number,
@@ -291,7 +291,8 @@ type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | '
 	windowingStrategy?: 'dom' | 'display',
 	onClose: () => void,
 	className?: string,
-	cornerHandle?: boolean
+	cornerHandle?: boolean,
+	contextRef?: MutableRef<ContextWindow | null>
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -318,7 +319,7 @@ const RESIZE_DIRECTION: Record<Direction, [number, number]> = {
 	se: [1, 1]
 };
 
-export const Window = ({ className, cornerHandle, children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
+export const Window = ({ contextRef, className, cornerHandle, children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
 	initialX = initialX < 0 ? window.innerWidth / 2 - initialWidth / 2 : initialX;
@@ -382,21 +383,32 @@ export const Window = ({ className, cornerHandle, children, title, icon, width: 
 			setY(initialY);
 			return context.removeWindow(id);
 		}
-		context.createWindow({
+		const w = {
 			title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, ref, setTaskbarWidth, setTaskbarX
-		});
+		};
+		context.createWindow(w);
+		if (contextRef)
+			contextRef.current = w;
 		context.setActiveWindow(id);
 	}, [ref, lastOpen, isOpen, context.createWindow, context.removeWindow, title, icon, width, height, x, y, id, maximized, minimized, initialX, initialY,
 		setMaximized, setMinimized, setTaskbarX, setTaskbarWidth, setMinimizedRestoreState, initialWidth, initialHeight, setShouldAnimateUnmaximize]);
 
 	useEffect(() => {
-		return () => context.removeWindow(id);
+		return () => {
+			if (contextRef)
+				contextRef.current = null;
+			context.removeWindow(id);
+		}
 	}, []);
 
 	useEffect(() => {
-		if (isOpen)
-			context.updateWindow({ title, icon, width, height, x, y, id, maximized, minimized, setMinimized, setMaximized, ref });
-	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, setMinimizedRestoreState, ref]);
+		if (isOpen) {
+			const w = { title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, ref, setTaskbarWidth, setTaskbarX };
+			if (contextRef)
+				contextRef.current = w;
+			context.updateWindow(w);
+		}
+	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, setMinimizedRestoreState, ref, setTaskbarX, setTaskbarWidth]);
 
 	useEffect(() => {
 		const resizeListener = () => {

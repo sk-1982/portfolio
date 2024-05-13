@@ -13,6 +13,8 @@ import { SideMenu, SideMenuItem } from './side-menu.tsx';
 import { css } from '@linaria/core';
 import { selected } from '@/css';
 import { useHoverTrigger } from '../hooks/use-hover-closer.ts';
+import { usePrograms } from './program.tsx';
+import calc from '@images/calc.webp';
 
 const startMenu = css`
   min-width: 175px;
@@ -40,6 +42,8 @@ const menuItem = css`
   height: 24px;
   padding: 4px 4px 4px 0;
   position: relative;
+	text-decoration: none;
+	color: #222;
 
   &:hover, &.${selected} {
     background: #000080;
@@ -59,12 +63,15 @@ const menuName = css`padding-right: 16px`;
 type MenuItem = '|' | ({
 	name: string,
 	icon: string,
-	children?: SideMenuItem[]
+	launch?: string[],
+	link?: string,
+	children?: MenuItem[]
 });
 
 const MENU: MenuItem[] = [{
 	name: 'View Source on Github',
-	icon: github
+	icon: github,
+	link: 'https://github.com/sk-1982'
 }, '|', {
 	name: 'Programs',
 	icon: programs,
@@ -74,6 +81,10 @@ const MENU: MenuItem[] = [{
 		children: [{
 			name: 'Games',
 			icon: programsSmall
+		}, {
+			name: 'Calculator',
+			icon: calc,
+			launch: ['calc.exe']
 		}]
 	}, {
 		name: 'Internet Explorer',
@@ -82,10 +93,6 @@ const MENU: MenuItem[] = [{
 }, {
 	name: 'Favorites',
 	icon: favorites,
-	// children: [{
-	// 	name: 'Test',
-	// 	icon: programsSmall
-	// }]
 }, {
 	name: 'Documents',
 	icon: documents
@@ -109,13 +116,29 @@ const StartMenuItem = ({ item, onClick }: { item: MenuItem & object, onClick?: (
 	</>);
 
 	const triggers = useHoverTrigger();
+	const programs = usePrograms();
 
 	if (item.children?.length)
 		return (<SideMenu items={item.children} openClassName={selected} className={menuItem} onItemSelected={onClick}>
 			{ menu }
 		</SideMenu>)
 
-	return (<div className={menuItem} onClick={onClick} {...triggers}>
+	const props = {
+		className: menuItem,
+		onClick: () => {
+			onClick?.();
+			if (item.launch?.length)
+				programs.openProgram(item.launch[0], ...item.launch.slice(1));
+		},
+		...triggers
+	};
+
+	if (item.link)
+		return (<a {...props} target="_blank" rel="noreferrer" href={item.link}>
+			{ menu }
+		</a>)
+
+	return (<div {...props}>
 		{ menu }
 	</div>);
 }
