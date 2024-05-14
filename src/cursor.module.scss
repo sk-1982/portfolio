@@ -13,3 +13,7 @@
 .nesw-resize, body[data-direction="ne"] *, body[data-direction="sw"] * {
 	cursor: url(./assets/images/nesw-resize.webp) 7 7, nesw-resize;
 }
+
+.progress, body[data-loading] * {
+	cursor: url(./assets/images/progress.webp), progress;
+}
