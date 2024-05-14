@@ -15,6 +15,7 @@ import './window.scss';
 import { taskbarZIndex } from '@/css';
 import cursor from '@/cursor.module.scss';
 import resizeHandle from '@images/resize-handle.webp';
+import { Tooltip } from './tooltip.tsx';
 
 const controls = css``;
 
@@ -75,7 +76,6 @@ const windowHidden = css`
 `;
 
 const windowPlaceholder = css`
-	display: flex;
   background: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%) 0 / 2px 2px;
 	position: fixed;
 	z-index: ${taskbarZIndex - 1};
@@ -83,13 +83,7 @@ const windowPlaceholder = css`
 	left: 0;
 	top: 0;
 	pointer-events: none;
-	
-	&::after {
-    content: " ";
-    margin: 4px;
-    background: black;
-    flex-grow: 1;
-	}
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 4px 4px, 4px calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 4px, 4px 4px);
 `;
 
 const windowNoTransition = css`
@@ -590,18 +584,26 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
             <img src={icon} alt="" />
         </div>}
 
-				<div class={cn(win98.titleBarText, titleBarText, icon && titleIcon)}>
-					{ title }
-				</div>
+				<Tooltip content={title} overflowOnly>
+					<div className={cn(win98.titleBarText, titleBarText, icon && titleIcon)}>
+						{title}
+					</div>
+				</Tooltip>
 
 				<div class={`${win98.titleBarControls} ${controls}`}>
-					<button aria-label="Minimize" onClick={() => setMinimized(true)} />
-					{isMaximized ? <button aria-label="Restore" onClick={() => setMaximized(false)} /> :
-						<button aria-label="Maximize" disabled={!resizable} onClick={() => setMaximized(true)} />}
-					<button aria-label="Close" onClick={onClose} />
+					<Tooltip content="Minimize">
+						<button aria-label="Minimize" onClick={() => setMinimized(true)}/>
+					</Tooltip>
+					<Tooltip content={isMaximized ? "Restore" : "Maximize"} disabled={!resizable}>
+						{isMaximized ? <button aria-label="Restore" onClick={() => setMaximized(false)} /> :
+							<button aria-label="Maximize" disabled={!resizable} onClick={() => setMaximized(true)} />}
+					</Tooltip>
+					<Tooltip content="Close">
+						<button aria-label="Close" onClick={onClose}/>
+					</Tooltip>
 				</div>
 			</div>
-			{ children }
+			{children}
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized, context.activationOrder,
 		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, resizeHandles, shouldMove, updatePrevWindowLayout]);
