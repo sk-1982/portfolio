@@ -3,8 +3,9 @@ import preact from '@preact/preset-vite'
 import path from 'path';
 import wyw from '@wyw-in-js/vite';
 import preload from 'unplugin-inject-preload/vite';
-import purgecss from '@fullhuman/postcss-purgecss';
+import purgeCss from "@mojojoejo/vite-plugin-purgecss";
 import incstr from 'incstr';
+import autoprefixer from 'autoprefixer';
 
 const classNames = new Map<string, string>();
 const generator = incstr.idGenerator({
@@ -32,7 +33,7 @@ export default defineConfig(env => ({
       '@': path.resolve(__dirname, './src/'),
       'react': 'preact/compat',
       'react-dom': 'preact/compat',
-      'preact/debug': 'preact'
+      // 'preact/debug': 'preact'
     }
   },
   css: {
@@ -51,14 +52,10 @@ export default defineConfig(env => ({
       }
     },
     postcss: {
-      plugins: [purgecss({
-        content: ['./src/**/*.{html,ts,tsx}'],
-        safelist: env.mode === 'development' ? [/./] : [/^.{1,3}$/]
-      })]
+      plugins: [autoprefixer]
     }
   },
   plugins: [
-    preact(),
     wyw({
       include: ['**/*.{ts,tsx}'],
       babelOptions: {
@@ -75,6 +72,7 @@ export default defineConfig(env => ({
       },
       preprocessor: 'none'
     }),
+    preact(),
     preload({
       files: [{
         entryMatch: /ms_sans_serif(_bold)?.woff2$/,
@@ -84,6 +82,9 @@ export default defineConfig(env => ({
           crossorigin: 'anonymous',
         }
       }]
+    }),
+    purgeCss({
+      blocklist: [/select/i]
     })
   ],
 }));
