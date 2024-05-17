@@ -1,5 +1,6 @@
-:root {
+#app {
   background: url(./assets/images/wallpaper.avif) bottom / cover;
+  transform: translate3d(0,0,0);
 
   @media (min-width: 2000px) {
     background: url(./assets/images/wallpaper-smoothed.avif) bottom / cover;
@@ -13,6 +14,7 @@
   height: 100%;
   font-size: 11px;
   font-family: "Pixelated MS Sans Serif", "MS Sans Serif", "Arial", sans-serif;
+  overflow: hidden;
 }
 
 * {
@@ -20,9 +22,22 @@
   image-rendering: crisp-edges;
   text-rendering: geometricPrecision;
   -webkit-font-smoothing: none;
+  shape-rendering: crispEdges;
 }
 
 * {
   cursor: url(./assets/images/default.webp), default;
   user-select: none;
+}
+
+@keyframes clip {
+  0% {
+    clip-path: inset(0);
+  }
+  99.9% {
+    clip-path: inset(0);
+  }
+  to {
+    clip-path: none;
+  }
 }

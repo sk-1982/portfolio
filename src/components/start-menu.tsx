@@ -9,7 +9,7 @@ import iexploreSmall from '@images/iexplore-small.webp';
 import github from '@images/github.webp';
 import { Separator } from './separator.tsx';
 import { ChevronRight } from './chevron-right.tsx';
-import { SideMenu, SideMenuItem } from './side-menu.tsx';
+import { SideMenu } from './side-menu.tsx';
 import { css } from '@linaria/core';
 import { selected } from '@/css';
 import { useHoverTrigger } from '../hooks/use-hover-closer.ts';
@@ -28,6 +28,9 @@ const sideBar = css`
   justify-content: end;
   color: white;
   writing-mode: tb;
+	> img {
+    height: 105px;
+	}
 `;
 
 const menu = css`
@@ -56,6 +59,15 @@ const menuItemIcon = css`
   display: flex;
   justify-content: end;
   margin-right: 14px;
+`;
+
+const sideMenuIcon = css`
+	margin-right: 10px !important;
+`;
+
+const sideMenuItem = css`
+	height: 20px !important;
+	padding-right: 6px !important;
 `;
 
 const menuName = css`padding-right: 16px`;
@@ -119,7 +131,8 @@ const StartMenuItem = ({ item, onClick }: { item: MenuItem & object, onClick?: (
 	const programs = usePrograms();
 
 	if (item.children?.length)
-		return (<SideMenu items={item.children} openClassName={selected} className={menuItem} onItemSelected={onClick}>
+		return (<SideMenu items={item.children} openClassName={selected} className={menuItem} onItemSelected={onClick}
+		                  iconContainerClass={sideMenuIcon} itemClass={sideMenuItem}>
 			{ menu }
 		</SideMenu>)
 

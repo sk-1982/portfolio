@@ -1,0 +1,13 @@
+@keyframes context-menu {
+	0% {
+		transform: translate(calc(var(--x2) * 100%), calc(var(--y2) * 100%));
+		clip-path: rect(calc((var(--y2) - 1) / -2 * 100%) calc((var(--x2) - 1) / -2 * 100%) calc((var(--y2) - 1) / -2 * 100%) calc((var(--x2) - 1) / -2 * 100%));
+
+		pointer-events: none;
+	}
+	to {
+		transform: translate(0, 0);
+		clip-path: rect(0 100% 100% 0);
+		pointer-events: none;
+	}
+};

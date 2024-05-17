@@ -10,6 +10,11 @@ import { selected, taskbarZIndex } from '@/css';
 import cn from 'clsx/lite';
 import { useHoverCloser } from '../hooks/use-hover-closer.ts';
 import { Tooltip } from './tooltip.tsx';
+import { ContextMenu } from './context-menu.tsx';
+import { Restore } from './restore.tsx';
+import { Minimize } from './minimize.tsx';
+import { Maximize } from './maximize.tsx';
+import { Close } from './close.tsx';
 
 const taskbar = css`
 	height: 29px;
@@ -55,11 +60,12 @@ const startMenuContainer = css`
 	bottom: 24px;
 	left: 4px;
 	z-index: ${taskbarZIndex + 10};
-	clip-path: rect(-10000px 10000px 100% 0px);
+	clip-path: inset(0);
 	pointer-events: none;
 `;
 
 const startMenuContainerOpen = css`
+	animation: clip .1s steps(2, end) 1 forwards;
 	pointer-events: auto;
 	.${startMenu} {
     transition: .1s linear;
@@ -128,19 +134,44 @@ const TaskbarItem = ({ win }: { win: ContextWindow }) => {
 	}, [ref, win]);
 
 	return (<Tooltip content={win.title} overflowOnly>
-		<button className={cn(taskbarItem, windows.activeWindow === win.id && `${win98.active} ${selected}`)}
-		                ref={ref}
-		                onClick={() => {
-											if (windows.activeWindow === win.id && !win.minimized) {
-												win.setMinimized(true);
-												return;
-											}
-											windows.setActiveWindow(win.id);
-											if (win.minimized) win.setMinimized(false);
-										}}>
-			{win.icon && <div><img src={win.icon} alt="" /></div>}
-			<span>{ win.title }</span>
-		</button>
+		<ContextMenu items={[{
+			name: 'Restore',
+			icon: (<Restore />),
+			onClick: () => {
+				if (win.minimized) return win.setMinimized(false);
+				win.setMaximized(false)
+			},
+			disabled: !win.minimized && (!win.resizable || !win.maximized)
+		}, {
+			name: 'Minimize',
+			icon: (<Minimize />),
+			onClick: () => win.setMinimized(true),
+			disabled: win.minimized
+		}, {
+			name: 'Maximize',
+			icon: (<Maximize />),
+			onClick: () => win.setMaximized(true),
+			disabled: !win.resizable || win.maximized
+		}, '|', {
+			name: 'Close',
+			bold: true,
+			icon: (<Close />),
+			onClick: () => win.onClose?.()
+		}]}>
+			<button className={cn(taskbarItem, windows.activeWindow === win.id && `${win98.active} ${selected}`)}
+			                ref={ref}
+			                onClick={() => {
+												if (windows.activeWindow === win.id && !win.minimized) {
+													win.setMinimized(true);
+													return;
+												}
+												windows.setActiveWindow(win.id);
+												if (win.minimized) win.setMinimized(false);
+											}}>
+				{win.icon && <div><img src={win.icon} alt="" /></div>}
+				<span>{ win.title }</span>
+			</button>
+		</ContextMenu>
 	</Tooltip>);
 };
 
@@ -193,13 +224,13 @@ export const Taskbar = () => {
 					</button>
 				</Tooltip>
 
-				<ResizableSeparator />
+				<ResizableSeparator/>
 
 				<div className={programs}>
 					{windows.windows.map(win => (<TaskbarItem win={win}/>))}
 				</div>
 
-				<Separator />
+				<Separator/>
 
 				<div className={`${win98.statusBarField} ${icons}`}>
 					{time}

@@ -38,9 +38,11 @@ const container = css`
   margin-right: 2px;
 `;
 
+export const ResizeHandle = () => (<div className={handle}/>);
+
 export const ResizableSeparator = () => {
 	return (<div className={container}>
 		<Separator />
-		<div className={handle} />
+		<ResizeHandle />
 	</div>)
 };

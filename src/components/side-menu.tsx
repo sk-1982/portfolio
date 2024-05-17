@@ -1,13 +1,10 @@
-import win98 from '@98.css';
 import { VNode } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { css } from '@linaria/core';
-import { Separator } from './separator.tsx';
-import { ChevronRight } from './chevron-right.tsx';
-import { selected, taskbarZIndex } from '@/css';
+import { taskbarZIndex } from '@/css';
 import cn from 'clsx/lite';
 import { useHoverCloser, useHoverTrigger } from '../hooks/use-hover-closer.ts';
-import { usePrograms } from './program.tsx';
+import { Menu, MenuItem } from './menu.tsx';
 
 const sideMenu = css`
 	transition: 0s;
@@ -18,14 +15,15 @@ const sideMenuContainer = css`
 	position: absolute;
 	right: 2px;
 	top: -3px;
+	clip-path: inset(0);
   transform: translateX(100%);
-	clip-path: rect(-10000px 10000px 10000px 0px);
 	z-index: ${taskbarZIndex + 20};
 	pointer-events: none;
 `;
 
 const sideMenuContainerOpen = css`
 	pointer-events: auto;
+	animation: clip .1s steps(2, end) 1 forwards;
 		
 	& > .${sideMenu} {
     transition: .1s;
@@ -33,92 +31,19 @@ const sideMenuContainerOpen = css`
 	}
 `;
 
-const sideMenuItem = css`
-	height: 20px;
-	display: flex;
-	align-items: center;
-	padding: 0 6px 0 2px;
-	color: #222;
-	text-decoration: none;
-  color: #222;
-
-  &:hover, &.${selected} {
-		background: #000080;
-		color: #fff;
-	}
-`;
-
-const iconContainer = css`
-	width: 16px;
-	height: 16px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	margin-right: 10px;
-`;
+type SideMenuProps = {
+	children: VNode<any>,
+	items: MenuItem[],
+	className?: string,
+	openClassName?: string,
+	onItemSelected?: () => void,
+	iconContainerClass?: string,
+	itemClass?: string
+};
 
 const triggerContainer = css`position: relative`;
 
-export type SideMenuItem = {
-	icon: string,
-	name: string,
-	children?: SideMenuItem[],
-	onClick?: () => void,
-	launch?: string[],
-	link?: string,
-} | '|';
-
-type SideMenuProps = {
-	children: VNode<any>,
-	items: SideMenuItem[],
-	className?: string,
-	openClassName?: string,
-	onItemSelected?: () => void
-};
-
-const SideMenuItem = ({ item, onItemSelected }: { item: SideMenuItem & object, onItemSelected?: () => void }) => {
-	const programs = usePrograms();
-
-	const contents = (<>
-		<div className={iconContainer}>
-			<img alt="" src={item.icon}/>
-		</div>
-		{item.name}
-		{!!item.children?.length && <ChevronRight />}
-	</>);
-
-	const triggers = useHoverTrigger();
-
-	if (item.children?.length)
-		return (<SideMenu items={item.children} className={sideMenuItem} openClassName={selected} onItemSelected={() => {
-			onItemSelected?.();
-		}}>
-			{ contents }
-		</SideMenu>);
-
-	const props = {
-		className: sideMenuItem,
-		onClick: (e: MouseEvent) => {
-			item.onClick?.();
-			onItemSelected?.();
-			if (item.launch?.length)
-				programs.openProgram(item.launch[0], ...item.launch.slice(1));
-			e.stopPropagation();
-		},
-		...triggers
-	};
-
-	if (item.link)
-		return (<a {...props} target="_blank" href={item.link} rel="noopener noreferrer">
-			{ contents }
-		</a>);
-
-	return (<div {...props}>
-		{ contents }
-	</div>);
-};
-
-export const SideMenu = ({ children, items, className, openClassName, onItemSelected }: SideMenuProps) => {
+export const SideMenu = ({ children, items, className, openClassName, onItemSelected, itemClass, iconContainerClass }: SideMenuProps) => {
 	const [isOpen, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement | null>(null);
 
@@ -127,23 +52,20 @@ export const SideMenu = ({ children, items, className, openClassName, onItemSele
 		onClose: () => setOpen(false)
 	});
 
-	return (<div className={cn(triggerContainer, className, isOpen && openClassName)}
+	return (<div className={cn(triggerContainer, className, isOpen && openClassName, itemClass)}
 	             onClick={() => setOpen(true)}
 	             {...useHoverTrigger(() => setOpen(true))}
 	             ref={ref}>
 		{children}
 		<div className={cn(sideMenuContainer, isOpen && sideMenuContainerOpen)}>
-      <div className={`${win98.window} ${sideMenu}`}>
-	      {items.map((item, i) => {
-		      if (item === '|')
-			      return (<Separator key={i} padding orientation="horizontal"/>);
-
-					return (<SideMenuItem key={i} item={item} onItemSelected={() => {
-						setOpen(false);
-						onItemSelected?.();
-					}} />)
-	      })}
-      </div>
+			<Menu items={items} className={sideMenu}
+			      onItemSelected={() => {
+				      setOpen(false);
+				      onItemSelected?.();
+			      }}
+			      iconContainerClass={iconContainerClass}
+			      itemClass={itemClass}
+			/>
 		</div>
 	</div>);
 };

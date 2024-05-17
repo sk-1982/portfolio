@@ -1,13 +1,13 @@
 @import '98.css';
 
 button.focused {
-	outline: 1px dotted #000000;
+	outline: 1px dotted black;
 	outline-offset: -4px;
 }
 
 button.active {
-	box-shadow: inset -1px -1px #ffffff, inset 1px 1px #0a0a0a,
-	inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+	box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
+	inset -2px -2px #dfdfdf, inset 2px 2px gray;
 	text-shadow: 1px 1px #222 !important;
 }
 
@@ -15,8 +15,10 @@ button.active {
 	color: silver;
 }
 
-button[aria-label="Maximize"]:disabled {
-	background-image: url(./assets/images/maximize-disabled.webp);
+.title-bar-controls button {
+	img, svg {
+		margin-top: 2px;
+	}
 }
 
 .status-bar {

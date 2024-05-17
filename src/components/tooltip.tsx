@@ -1,9 +1,10 @@
 import { css } from '@linaria/core';
-import { cloneElement, VNode } from 'preact';
-import { useCallback, useRef, useState } from 'preact/hooks';
+import { cloneElement, createContext, VNode } from 'preact';
+import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { taskbarZIndex } from '@/css';
 import './tooltip.scss';
-import { createPortal } from 'preact/compat';
+// @ts-ignore
+import { createPortal } from '@/utils/createPortal';
 import cn from 'clsx/lite';
 
 const tooltipContainer = css`
@@ -39,6 +40,8 @@ type TooltipProps = {
 	disabled?: boolean
 };
 
+export const TooltipDisableContext = createContext(false);
+
 const computeTooltipLocation = ({ x, y }: { x: number, y: number }, tooltipElem: HTMLDivElement | null) => {
 	const width = tooltipElem?.clientWidth ?? 0;
 	const height = tooltipElem?.clientHeight ?? 0;
@@ -55,6 +58,7 @@ export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipPr
 	const ref = useRef<HTMLElement | null>(null);
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const [lastMouse, setLastMouse] = useState({ x: 0, y: 0 });
+	const contextDisabled = useContext(TooltipDisableContext);
 
 	const refreshTimeout = useCallback((e: MouseEvent) => {
 		if (lastTimeout.current)
@@ -88,14 +92,6 @@ export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipPr
 			}
 			setShowing(false);
 		},
-		onMouseMove: (e: MouseEvent) => {
-			if (isShowing) {
-				if (Math.abs(lastMouse.x - e.clientX) + Math.abs(lastMouse.y - e.clientY) > 8)
-					setShowing(false);
-			} else if (lastTimeout.current) {
-				refreshTimeout(e);
-			}
-		},
 		ref: (e: HTMLElement) => {
 			ref.current = e;
 			if (children.ref)
@@ -103,12 +99,33 @@ export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipPr
 		}
 	});
 
+	useEffect(() => {
+		const mouseMove = (e: MouseEvent) => {
+			if (isShowing) {
+				if (Math.abs(lastMouse.x - e.clientX) + Math.abs(lastMouse.y - e.clientY) > 8)
+					setShowing(false);
+			} else if (lastTimeout.current) {
+				refreshTimeout(e);
+			}
+		};
+
+		const mouseDown = () => setShowing(false);
+
+		document.addEventListener('mousemove', mouseMove);
+		document.addEventListener('mousedown', mouseDown);
+
+		return () => {
+			document.removeEventListener('mousemove', mouseMove);
+			document.removeEventListener('mousedown', mouseDown);
+		};
+	}, [isShowing]);
+
 	return (<>
 		{ child }
-		{!disabled && createPortal(<div className={cn(tooltipContainer, !isShowing && tooltipContainerHidden)}
+		{!disabled && !contextDisabled && createPortal(<div className={cn(tooltipContainer, !isShowing && tooltipContainerHidden)}
 		                   ref={containerRef}
 		                   style={computeTooltipLocation(lastMouse, containerRef.current)}>
 			<div className={tooltipClass}>{content}</div>
-		</div>, document.body)}
+		</div>, document.getElementById('app')!)}
 	</>);
 };

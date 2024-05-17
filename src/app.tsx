@@ -1,6 +1,7 @@
 import { Taskbar } from './components/taskbar.tsx';
 import { Providers } from './providers.tsx';
 import { DynamicProgram } from './components/program.tsx';
+import { Desktop } from './components/desktop.tsx';
 
 export function App() {
   return (<Providers>
@@ -8,6 +9,7 @@ export function App() {
       const { CalculatorProgram } = (await import('./programs/calculator.tsx'));
       return (<CalculatorProgram />);
     }} />
+    <Desktop />
     <Taskbar />
   </Providers>);
 }
