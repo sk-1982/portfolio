@@ -7,9 +7,14 @@ import purgeCss from "@mojojoejo/vite-plugin-purgecss";
 import incstr from 'incstr';
 import autoprefixer from 'autoprefixer';
 import { Declaration } from 'postcss';
-import { ViteMinifyPlugin } from 'vite-plugin-minify'
 import * as sass from 'sass';
 import fs from 'fs';
+import { minify } from 'html-minifier-terser';
+import zlib from 'zlib';
+import util from 'util';
+
+const brCompress = util.promisify(zlib.brotliCompress);
+const gzCompress = util.promisify(zlib.gzip);
 
 const classNames = new Map<string, string>();
 const generator = incstr.idGenerator({
@@ -139,11 +144,57 @@ export default defineConfig(env => ({
     }),
     {
       name: 'process-files',
-      writeBundle(opts, bundle) {
-        Object.entries(bundle).forEach(([file, data]) => {
-          if (/ms_sans_serif_bold/i.test(file) || (/ms_sans_serif/i.test(file) && file.endsWith('.woff')))
-            fs.unlinkSync(path.join('dist', file))
-        });
+      enforce: 'post',
+
+      writeBundle: {
+        sequential: true,
+        async handler(opts, bundle) {
+          const output: string[] = [];
+
+          await Promise.all(Object.keys(bundle).map(async file => {
+            const filePath = path.join('dist', file);
+
+            if (/ms_sans_serif_bold/i.test(file) || (/ms_sans_serif/i.test(file) && file.endsWith('.woff')))
+              return fs.promises.unlink(filePath);
+
+            if (/index\.html/i.test(file))
+              await fs.promises.writeFile(filePath,
+                await minify((await fs.promises.readFile(filePath)).toString(), {
+                  collapseWhitespace: true
+                })
+              );
+
+            output.push(filePath);
+          }));
+
+          let totalSize = 0;
+          let brSize = 0;
+          let gzSize = 0;
+
+          await Promise.all(output.filter(f => /\.(css|html|js)$/.test(f)).map(async file => {
+            const data = await fs.promises.readFile(file);
+            totalSize += data.length;
+
+            const br = await brCompress(data, {
+              params: {
+                [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MAX_QUALITY,
+                [zlib.constants.BROTLI_PARAM_SIZE_HINT]: data.length
+              }
+            });
+            brSize += br.length
+            await fs.promises.writeFile(`${file}.br`, br);
+
+            const gz = await gzCompress(data, {
+              level: zlib.constants.Z_BEST_COMPRESSION
+            });
+            gzSize += gz.length;
+            await fs.promises.writeFile(`${file}.gz`, gz);
+          }));
+
+          console.log(`\tbrotli: ${totalSize / 1000}kB -> ${brSize / 1000}kB (${brSize / totalSize * 100}%)`);
+          console.log(`\tgzip: ${totalSize / 1000}kB -> ${gzSize / 1000}kB (${gzSize / totalSize * 100}%)`);
+
+        }
       }
     }
   ],
