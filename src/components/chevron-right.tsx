@@ -4,6 +4,7 @@ const chevronRight = css`
   display: flex;
   align-items: center;
   margin-left: auto;
+	padding-left: 4px;
 `;
 
 export const ChevronRight = () => {

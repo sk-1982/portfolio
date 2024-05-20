@@ -30,7 +30,12 @@
     "typescript": "^5.2.2",
     "unplugin-inject-preload": "^2.0.3",
     "vite": "^5.2.0",
-    "vite-bundle-visualizer": "^1.2.1"
+    "vite-bundle-visualizer": "^1.2.1",
+    "vite-plugin-minify": "^1.5.2"
   },
-  "browserslist": ["defaults"]
+  "browserslist": [
+    "last 6 Chrome versions",
+    "last 5 Firefox versions",
+    "last 3 Safari versions"
+  ]
 }

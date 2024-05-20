@@ -17,3 +17,11 @@
 .progress, body[data-loading] * {
 	cursor: url(./assets/images/progress.webp), progress;
 }
+
+input:focus, .page-container :is(h1, h2, h3, h4, h5, h6, p, span, b, u, sup) {
+	cursor: url(./assets/images/text.webp), text;
+}
+
+.pointer, .pointer *, .page-container a, .page-container a * {
+	cursor: url(./assets/images/pointer.webp) 5 0, pointer;
+}

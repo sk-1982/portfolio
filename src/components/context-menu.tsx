@@ -6,7 +6,6 @@ import { css } from '@linaria/core';
 import { createPortal } from '@/utils/createPortal';
 import { taskbarZIndex } from '@/css';
 import cn from 'clsx/lite';
-import './context-menu.scss';
 import { useHoverCloser } from '../hooks/use-hover-closer.ts';
 import { Menu, MenuItem } from './menu.tsx';
 
@@ -16,7 +15,22 @@ type ContextMenuProps = {
 };
 
 const contextMenu = css`
-	position: fixed;
+  @keyframes context-menu {
+    0% {
+      transform: translate(calc(var(--x2) * 100%), calc(var(--y2) * 100%));
+      clip-path: rect(calc((var(--y2) - 1) / -2 * 100%) calc((var(--x2) - 1) / -2 * 100%) calc((var(--y2) - 1) / -2 * 100%) calc((var(--x2) - 1) / -2 * 100%));
+
+      pointer-events: none;
+    }
+    to {
+      transform: translate(0, 0);
+      clip-path: rect(0 100% 100% 0);
+      pointer-events: none;
+    }
+  };
+
+
+  position: fixed;
 	top: 0;
 	left: 0;
 	transform: translate(var(--x), var(--y));

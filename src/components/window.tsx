@@ -11,7 +11,6 @@ import {
 import { css } from '@linaria/core';
 import cn from 'clsx/lite';
 import win98 from '@98.css';
-import './window.scss';
 import { taskbarZIndex } from '@/css';
 import cursor from '@/cursor.module.scss';
 import resizeHandle from '@images/resize-handle.webp';
@@ -28,7 +27,52 @@ import { MenuItem } from './menu.tsx';
 const controls = css``;
 
 const windowClass = css`
-	--minimize: none;
+  @keyframes minimize {
+    0% {
+      clip-path: rect(3px calc(100% - 3px) 23px 3px);
+      transform: translate(var(--x), var(--y));
+      z-index: 1000000;
+    }
+    99.99% {
+      clip-path: rect(3px var(--w2) 23px 3px);
+      transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
+      z-index: 1000000;
+    }
+    100% {
+      clip-path: rect(0 0 0 0);
+    }
+  }
+  @keyframes restore {
+    0% {
+      clip-path: rect(3px var(--w2) 23px 3px);
+      transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
+      z-index: 1000000;
+    }
+    100% {
+      clip-path: rect(3px calc(100% - 3px) 23px 3px);
+      transform: translate(var(--x), var(--y));
+      z-index: 1000000;
+    }
+  }
+
+  @each $name in ('maximize', 'unmaximize') {
+    @keyframes #{$name} {
+      to {
+        clip-path: rect(3px calc(100% - 3px) 23px 3px);
+      }
+    }
+  }
+
+  @for $i from 1 through 4 {
+    @keyframes hide-#{$i} {
+      to {
+        width: 0;
+        clip-path: rect(0 0 0 0);
+      }
+    }
+  }
+		
+  --minimize: none;
 	--maximize: none;
 	--restore: none;
 	--unmaximize: none;
@@ -286,6 +330,8 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 	</WindowContext.Provider>)
 };
 
+export type WindowState = { resizing: boolean, focused: boolean };
+
 export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximized' | 'minimized'> & {
 	x?: number,
 	y?: number,
@@ -293,7 +339,7 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	height?: number,
 	maximized?: boolean,
 	minimized?: boolean,
-	children: ComponentChildren,
+	children: ComponentChildren | ((status: WindowState) => ComponentChildren),
 	isOpen: boolean,
 	windowingStrategy?: 'dom' | 'display',
 	onClose: () => void,
@@ -330,7 +376,7 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
 	initialX = initialX < 0 ? window.innerWidth / 2 - initialWidth / 2 : initialX;
-	initialY = initialY < 0 ? window.innerHeight / 2 - initialHeight / 2 : initialY;
+	initialY = initialY < 0 ? window.innerHeight / 2 - initialHeight / 2 - 20 : initialY;
 	const [x, setX] = useState(initialX);
 	const [y, setY] = useState(initialY);
 	const [width, setWidth] = useState(initialWidth);
@@ -550,9 +596,11 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 		dragStart.current.y = e.clientY;
 		prevWindow.current.x = x;
 		prevWindow.current.y = y;
-		prevWindow.current.width = width;
-		prevWindow.current.height = height;
-	}, [x, y, width, height]);
+		if (ref.current) {
+			prevWindow.current.width = ref.current.clientWidth - 6;
+			prevWindow.current.height = ref.current.clientHeight - 6;
+		}
+	}, [x, y]);
 
 	const resizeHandles = useMemo(() => {
 		if (!resizable || maximized) return null;
@@ -664,11 +712,14 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 					</div>
 				</div>
 			</ContextMenu>
-			{children}
+			{ typeof children === 'function' ? children({
+				resizing: isMoving || resizingDirection !== null,
+				focused: context.activeWindow === id
+			}) : children }
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized,
 		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations,
-		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy]);
+		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection]);
 
 	const preview = useMemo(() => {
 		if (!isMoving && !resizingDirection) return null;

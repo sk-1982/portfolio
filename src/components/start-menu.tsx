@@ -100,7 +100,8 @@ const MENU: MenuItem[] = [{
 		}]
 	}, {
 		name: 'Internet Explorer',
-		icon: iexploreSmall
+		icon: iexploreSmall,
+		launch: ['iexplore.exe']
 	}]
 }, {
 	name: 'Favorites',

@@ -6,7 +6,6 @@ import { taskbarZIndex } from '@/css';
 import { Menu, MenuItem } from './menu.tsx';
 import { SmallButton } from './small-button.tsx';
 import { useHoverCloser } from '../hooks/use-hover-closer.ts';
-import './dropdown.scss';
 
 const dropdownMenuContainer = css`
 	position: relative;
@@ -26,7 +25,16 @@ const dropdownMenu = css`
 `;
 
 const dropdownMenuOpen = css`
-	visibility: visible;
+  @keyframes dropdown {
+    0% {
+      transform: translateY(calc(-100% * var(--y)));
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  visibility: visible;
   animation: clip .1s steps(2, end) 1 forwards;
 	> div {
 			animation: dropdown .1s linear 1;
@@ -42,20 +50,23 @@ type DropdownMenuProps = {
 	dropdownRef?: DropdownMenuRef,
 	onOpen?: (open: boolean) => void,
 	onMouseEnter?: (e: MouseEvent) => void,
-	className?: string
+	className?: string,
+	iconContainerClass?: string,
+	itemClass?: string
 };
 
-export const DropdownMenu = ({ children, items, disabled, dropdownRef, onOpen, onMouseEnter, className }: DropdownMenuProps) => {
+export const DropdownMenu = ({ children, items, disabled, dropdownRef, onOpen, onMouseEnter, className, iconContainerClass, itemClass }: DropdownMenuProps) => {
 	const ref = useRef<HTMLDivElement | null>(null);
 	const [dropdownMenuStyle, setDropdownMenuStyle] = useState<{ x: number, b: string, t: string, y: string } | null>(null);
 
 	const setOpen = useCallback((open: boolean) => {
-		if (disabled) return;
-
 		onOpen?.(open);
 
 		if (!open)
 			return setDropdownMenuStyle(null);
+
+		if (disabled) return;
+
 		const bounding = ref.current?.getBoundingClientRect();
 		const x = bounding?.x ?? 0;
 		const y = bounding?.y ?? 0;
@@ -96,24 +107,33 @@ export const DropdownMenu = ({ children, items, disabled, dropdownRef, onOpen, o
 		             '--y': dropdownMenuStyle.y,
 	             } : undefined}
 	             onMouseEnter={onMouseEnter}
-	             onClick={() => setOpen(dropdownMenuStyle === null)}>
+	             onClick={e => {
+								 let target = e.target as HTMLElement | null;
+								 while (target) {
+									 if (target === ref.current) return;
+									 if (target === ref.current?.parentElement) break;
+									 target = target.parentElement;
+								 }
+								 setOpen(dropdownMenuStyle === null);
+	             }}>
 		{ typeof children === 'function' ? children(dropdownMenuStyle !== null) : children }
 		<div ref={ref}
 		     className={cn(dropdownMenu, !disabled && dropdownMenuStyle !== null && dropdownMenuOpen)}>
-			<Menu items={items}
+			<Menu items={items} iconContainerClass={iconContainerClass} itemClass={itemClass}
 			      onItemSelected={() => setOpen(false)} />
 		</div>
 	</div>);
 };
 
-type DropdownButtonProps = Pick<DropdownMenuProps, 'items' | 'children' | 'dropdownRef' | 'onOpen' | 'onMouseEnter'> & {
+type DropdownButtonProps = Pick<DropdownMenuProps, 'items' | 'children' | 'dropdownRef' | 'onOpen' | 'onMouseEnter' | 'itemClass' | 'iconContainerClass'> & {
 	className?: string,
 	disabled?: boolean,
-	padding?: number
+	padding?: number,
+	dropdownClass?: string
 };
 
-export const DropdownButton = ({ children, items, className, disabled, padding, dropdownRef, onOpen, onMouseEnter }: DropdownButtonProps) => {
-	return (<DropdownMenu items={items} disabled={disabled} dropdownRef={dropdownRef} onOpen={onOpen} onMouseEnter={onMouseEnter}>
+export const DropdownButton = ({ children, items, className, disabled, padding, dropdownRef, onOpen, onMouseEnter, dropdownClass, itemClass, iconContainerClass }: DropdownButtonProps) => {
+	return (<DropdownMenu items={items} disabled={disabled} dropdownRef={dropdownRef} onOpen={onOpen} onMouseEnter={onMouseEnter} className={dropdownClass} itemClass={itemClass} iconContainerClass={iconContainerClass}>
 		{o => <SmallButton active={o} disabled={disabled} padding={padding} className={className}>
 			{ children }
 		</SmallButton>}

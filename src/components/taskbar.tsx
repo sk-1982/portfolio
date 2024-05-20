@@ -15,6 +15,9 @@ import { Restore } from './restore.tsx';
 import { Minimize } from './minimize.tsx';
 import { Maximize } from './maximize.tsx';
 import { Close } from './close.tsx';
+import { SmallButton } from './small-button.tsx';
+import iexploreSmall from '@images/iexplore-small.webp';
+import { usePrograms } from './program.tsx';
 
 const taskbar = css`
 	height: 29px;
@@ -99,6 +102,7 @@ const taskbarItem = css`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+		line-height: 2;
 	}
 		
 	> div {
@@ -112,6 +116,20 @@ const taskbarItem = css`
     background: repeating-conic-gradient(silver 0% 25%, #fff 0% 50%) 0 / 2px 2px;
     font-weight: bold;
 	}
+`;
+
+const taskbarIconButton = css`
+	height: 100%;
+	aspect-ratio: 1/1;
+	margin-right: 4px;
+	&, & div {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		img {
+			margin: 0 1px 1px 0;
+		}
+  }
 `;
 
 const currentTime = () => new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
@@ -133,8 +151,7 @@ const TaskbarItem = ({ win }: { win: ContextWindow }) => {
 		return () => window.removeEventListener('resize', resizeListener);
 	}, [ref, win]);
 
-	return (<Tooltip content={win.title} overflowOnly>
-		<ContextMenu items={[{
+	return (<ContextMenu items={[{
 			name: 'Restore',
 			icon: (<Restore />),
 			onClick: () => {
@@ -158,6 +175,7 @@ const TaskbarItem = ({ win }: { win: ContextWindow }) => {
 			icon: (<Close />),
 			onClick: () => win.onClose?.()
 		}]}>
+		<Tooltip content={win.title} overflowOnly>
 			<button className={cn(taskbarItem, windows.activeWindow === win.id && `${win98.active} ${selected}`)}
 			                ref={ref}
 			                onClick={() => {
@@ -171,8 +189,8 @@ const TaskbarItem = ({ win }: { win: ContextWindow }) => {
 				{win.icon && <div><img src={win.icon} alt="" /></div>}
 				<span>{ win.title }</span>
 			</button>
-		</ContextMenu>
-	</Tooltip>);
+		</Tooltip>
+	</ContextMenu>);
 };
 
 export const Taskbar = () => {
@@ -180,6 +198,7 @@ export const Taskbar = () => {
 	const [time, setTime] = useState(currentTime());
 	const interval = useRef<ReturnType<typeof setInterval> | null>(null);
 	const windows = useWindows();
+	const program = usePrograms();
 
 	useEffect(() => {
 		interval.current = setInterval(() => {
@@ -224,7 +243,17 @@ export const Taskbar = () => {
 					</button>
 				</Tooltip>
 
-				<ResizableSeparator/>
+				<ResizableSeparator />
+
+				<Tooltip content="Launch Internet Explorer Browser">
+					<div>
+						<SmallButton padding={0} className={taskbarIconButton} onClick={() => program.openProgram('iexplore.exe')}>
+							<img src={iexploreSmall} alt="" />
+						</SmallButton>
+					</div>
+				</Tooltip>
+
+				<ResizableSeparator />
 
 				<div className={programs}>
 					{windows.windows.map(win => (<TaskbarItem win={win}/>))}

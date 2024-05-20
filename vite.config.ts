@@ -6,6 +6,9 @@ import preload from 'unplugin-inject-preload/vite';
 import purgeCss from "@mojojoejo/vite-plugin-purgecss";
 import incstr from 'incstr';
 import autoprefixer from 'autoprefixer';
+import { Declaration } from 'postcss';
+import { ViteMinifyPlugin } from 'vite-plugin-minify'
+import * as sass from 'sass';
 
 const classNames = new Map<string, string>();
 const generator = incstr.idGenerator({
@@ -37,6 +40,11 @@ export default defineConfig(env => ({
     }
   },
   css: {
+    preprocessorOptions: {
+      scss: {
+
+      }
+    },
     modules: {
       localsConvention: 'camelCaseOnly',
       generateScopedName: (name, filename, css) => {
@@ -52,7 +60,31 @@ export default defineConfig(env => ({
       }
     },
     postcss: {
-      plugins: [autoprefixer]
+      plugins: [{
+        postcssPlugin: 'remove',
+        Rule: rule => {
+          if (!rule.nodes.every(n => n.type === 'decl'))
+            return;
+          const style = ([...rule.nodes] as Declaration[])
+            .sort((a, b) => a.prop.localeCompare(b.prop, 'en-US'))
+            .map(d => `${d.prop}:${d.value}`)
+            .join(';');
+          const remove = new Set([
+            'color:#222;font-family:Arial;font-size:12px',
+            '-webkit-font-smoothing:none;font-family:"Pixelated MS Sans Serif",Arial;font-size:11px'
+          ]);
+          if (remove.has(style))
+            rule.remove();
+        },
+        AtRule: {
+          'font-face': rule => {
+            rule.walkDecls('src', node => {
+              if (/format\("woff"\)/.test(node.value))
+                node.remove();
+            });
+          }
+        }
+      }, autoprefixer]
     }
   },
   plugins: [
@@ -70,7 +102,7 @@ export default defineConfig(env => ({
           return `${title}_${hash}`;
         return getName(`${hash}|${title}`);
       },
-      preprocessor: 'none'
+      preprocessor: (selector, cssText) => sass.compileString(`${selector} { ${cssText} }`).css
     }),
     preact(),
     preload({
@@ -85,6 +117,6 @@ export default defineConfig(env => ({
     }),
     purgeCss({
       blocklist: [/select/i]
-    })
+    }),
   ],
 }));

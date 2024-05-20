@@ -1,13 +1,16 @@
 import { ComponentChildren } from 'preact';
 import { css } from '@linaria/core';
 import cn from 'clsx/lite';
+import { MutableRef } from 'preact/hooks';
 
 type SmallButtonProps = {
 	children?: ComponentChildren,
 	className?: string,
 	active?: boolean,
 	padding?: number,
-	disabled?: boolean
+	disabled?: boolean,
+	onClick?: () => void,
+	containerClassName?: string
 };
 
 const smallButton = css`
@@ -37,6 +40,9 @@ const smallButton = css`
 			filter: drop-shadow(1px 1px #fff);
 			color: gray;
 		}
+		img {
+			filter: contrast(0);
+		}
 	}
 `;
 
@@ -57,14 +63,14 @@ const smallButtonGroup = css`
 	}
 `;
 
-export const SmallButtonGroup = ({ children }: { children: ComponentChildren }) => {
-	return (<div className={smallButtonGroup}>
+export const SmallButtonGroup = ({ children, className }: { children: ComponentChildren, className?: string }) => {
+	return (<div className={`${smallButtonGroup} ${className ?? ''}`}>
 		{ children }
 	</div>)
 };
 
-export const SmallButton = ({ children, className, active, padding, disabled }: SmallButtonProps) => {
-	return (<button className={cn(smallButton, className, active && smallButtonActive)} style={{ '--p': `${padding ?? 8}px` }} disabled={disabled}>
-		<div>{ children }</div>
+export const SmallButton = ({ children, className, active, padding, disabled, onClick, containerClassName }: SmallButtonProps) => {
+	return (<button className={cn(smallButton, className, active && smallButtonActive)} style={{ '--p': `${padding ?? 8}px` }} disabled={disabled} onClick={onClick}>
+		<div className={containerClassName}>{ children }</div>
 	</button>);
 };

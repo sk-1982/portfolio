@@ -1,8 +1,10 @@
 import { css } from '@linaria/core';
+import cn from 'clsx/lite';
 
 export type SeparatorProps = {
 	orientation?: 'horizontal' | 'vertical',
-	padding?: boolean
+	padding?: boolean,
+	className?: string,
 };
 
 const separatorVertical = css`
@@ -23,8 +25,8 @@ const separatorHorizontal = css`
 
 const separatorPadding = css`margin: 2px`;
 
-export const Separator = ({ orientation, padding }: SeparatorProps) => {
-	const className = orientation === 'horizontal' ? separatorHorizontal : separatorVertical;
+export const Separator = ({ orientation, padding, className }: SeparatorProps) => {
+	const c = orientation === 'horizontal' ? separatorHorizontal : separatorVertical;
 
-	return (<div className={`${className} ${padding ? separatorPadding : ''}`} />);
+	return (<div className={cn(c, className, padding && separatorPadding)} />);
 }

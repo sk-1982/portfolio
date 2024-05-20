@@ -17,6 +17,7 @@ const menuItem = css`
 	padding: 0 12px 0 2px;
 	color: #222;
 	text-decoration: none;
+	white-space: nowrap;
 
   &:hover, &.${selected} {
 		background: #000080;

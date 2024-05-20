@@ -2,7 +2,6 @@ import { css } from '@linaria/core';
 import { cloneElement, createContext, VNode } from 'preact';
 import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hooks';
 import { taskbarZIndex } from '@/css';
-import './tooltip.scss';
 // @ts-ignore
 import { createPortal } from '@/utils/createPortal';
 import cn from 'clsx/lite';
@@ -19,7 +18,16 @@ const tooltipContainer = css`
 `;
 
 const tooltipClass = css`
-	padding: 3px;
+  @keyframes tooltip {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  padding: 3px;
 	border: 1px solid black;
 	background: #ffffe1;
 	line-height: 1;
@@ -38,7 +46,7 @@ type TooltipProps = {
 	content: string,
 	overflowOnly?: boolean,
 	disabled?: boolean
-};
+} & any;
 
 export const TooltipDisableContext = createContext(false);
 
@@ -52,7 +60,7 @@ const computeTooltipLocation = ({ x, y }: { x: number, y: number }, tooltipElem:
 	return { '--x': `${x}px`, '--y': `${y}px` };
 };
 
-export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipProps) => {
+export const Tooltip = ({ children, content, overflowOnly, disabled, ...rest }: TooltipProps) => {
 	const [isShowing, setShowing] = useState(false);
 	const lastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const ref = useRef<HTMLElement | null>(null);
@@ -79,7 +87,6 @@ export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipPr
 			if (overflowOnly) {
 				const overflowing = ref.current.scrollWidth > ref.current.clientWidth ||
 					[...ref.current.querySelectorAll(':scope > span')].some(e => e.scrollWidth > e.clientWidth);
-
 				if (!overflowing) return;
 			}
 
@@ -96,7 +103,8 @@ export const Tooltip = ({ children, content, overflowOnly, disabled }: TooltipPr
 			ref.current = e;
 			if (children.ref)
 				(children.ref as any).current = e;
-		}
+		},
+		...rest
 	});
 
 	useEffect(() => {

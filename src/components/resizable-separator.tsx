@@ -1,35 +1,14 @@
 import { Separator } from './separator';
 import { css } from '@linaria/core';
+import cn from 'clsx/lite';
 
 const handle = css`
   width: 3px;
   height: calc(100% - 4px);
   align-self: center;
-  box-sizing: border-box;
-  position: relative;
-
-  border-top: 1px solid white;
-  border-left: 1px solid white;
-  border-right: 1px solid #85898d;
-  border-bottom: 1px solid #85898d;
-
-  &::before, &::after {
-    position: absolute;
-    content: " ";
-    width: 1px;
-    height: 1px;
-    background: #85898d;
-  }
-
-  &::before {
-    bottom: -1px;
-    right: 1px;
-  }
-
-  &::after {
-    top: -1px;
-    left: 1px;
-  }
+	box-shadow: inset -1px -1px gray, inset 1px 1px #fff;
+	margin-right: 2px;
+	margin-left: 1px;
 `;
 
 const container = css`
@@ -38,11 +17,13 @@ const container = css`
   margin-right: 2px;
 `;
 
-export const ResizeHandle = () => (<div className={handle}/>);
+const separator = css`margin-right: 1px`;
+
+export const ResizeHandle = ({ className }: { className?: string }) => (<div className={cn(handle, className)}/>);
 
 export const ResizableSeparator = () => {
 	return (<div className={container}>
-		<Separator />
+		<Separator className={separator} />
 		<ResizeHandle />
 	</div>)
 };
