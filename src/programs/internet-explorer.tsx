@@ -316,7 +316,8 @@ const DOMAIN_OVERRIDES = new Map<string, {
 	['maia.crimew.gay', { type: 'native' }],
 	['goop.house', { type: 'native' }],
 	['wiby.me', { type: 'native' }],
-	['cyberia-anime.com', { scripts: false }]
+	['cyberia-anime.com', { scripts: false }],
+	['copy.sh', { type: 'native' }]
 ]);
 
 const FAVORITES = [{
@@ -332,6 +333,9 @@ const FAVORITES = [{
 }, {
 	name: 'John Titor',
 	url: 'https://timetravelinstitute.com/ttiforum/f1/619.php'
+}, {
+	name: 'Virtual 98',
+	url: 'https://copy.sh/v86/?profile=windows98'
 }];
 
 export const InternetExplorer = () => {
@@ -661,16 +665,23 @@ export const InternetExplorer = () => {
 		</>);
 	}, [isOpen, pushHistory, prevHistory, history, nextHistory, historyIndex, content, favoritesOpen, inputRef, loading]);
 
-	return (<Program name="iexplore.exe" onOpen={(location=IEXPLORE_HOME) => {
+	return (<Program name="iexplore.exe" onOpen={useCallback((location: string) => {
+		windows.setActiveWindow("iexplore.exe");
+
+		if (isOpen) {
+			if (!location) return;
+			return pushHistory(location);
+		}
+
+		location ||= IEXPLORE_HOME;
 		setHistoryIndex(0);
 		setHistory([location]);
 		setOpen(true);
-		windows.setActiveWindow("iexplore.exe");
 		setTimeout(() => {
 			if (inputRef.current)
 				inputRef.current.value = location;
 		}, 0);
-	}}>
+	}, [windows, isOpen, pushHistory])}>
 		<Window title="Address Bar" id="iexplore-address"
 		        isOpen={!!error} onClose={() => setError('')} x={-1} y={-1}>
 			<div className={`${win98.windowBody} ${errorModal}`}>

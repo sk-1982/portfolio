@@ -15,7 +15,7 @@
 }
 
 .progress, body[data-loading] * {
-	cursor: url(./assets/images/progress.webp), progress;
+	cursor: url(./assets/images/progress.webp), progress !important;
 }
 
 input:focus, .page-container :is(h1, h2, h3, h4, h5, h6, p, span, b, u, sup) {

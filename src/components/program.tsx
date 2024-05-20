@@ -54,7 +54,7 @@ export const Program = ({ name, onOpen, children }: ProgramProps) => {
 		context.register({ name, onOpen });
 
 		return () => context.unregister(name);
-	}, [context.register, context.unregister]);
+	}, [context.register, context.unregister, onOpen]);
 
 	return (<>{ children }</>);
 };
@@ -66,11 +66,11 @@ export const SimpleProgram = ({ name, children, ...windowProps }: SimpleProgramP
 	const windows = useWindows();
 	const ref = useRef<ContextWindow | null>(null);
 
-	return (<Program name={name} onOpen={() => {
+	return (<Program name={name} onOpen={useCallback(() => {
 		setOpen(true);
 		windows.setActiveWindow(name);
 		if (ref.current?.minimized) ref.current?.setMinimized(false);
-	}}>
+	}, [windows, name])}>
 		<Window isOpen={isOpen} onClose={() => setOpen(false)} {...windowProps} id={name} contextRef={ref}>
 			{ children }
 		</Window>

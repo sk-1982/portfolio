@@ -140,7 +140,8 @@ export default defineConfig(env => ({
       }]
     }),
     purgeCss({
-      blocklist: [/select/i]
+      blocklist: [/select/i],
+      safelist: [/data-loading/i]
     }),
     {
       name: 'process-files',
@@ -171,7 +172,7 @@ export default defineConfig(env => ({
           let brSize = 0;
           let gzSize = 0;
 
-          await Promise.all(output.filter(f => /\.(css|html|js)$/.test(f)).map(async file => {
+          await Promise.all(output.filter(f => /\.(css|html|js|data|wasm)$/.test(f)).map(async file => {
             const data = await fs.promises.readFile(file);
             totalSize += data.length;
 
@@ -193,7 +194,6 @@ export default defineConfig(env => ({
 
           console.log(`\tbrotli: ${totalSize / 1000}kB -> ${brSize / 1000}kB (${brSize / totalSize * 100}%)`);
           console.log(`\tgzip: ${totalSize / 1000}kB -> ${gzSize / 1000}kB (${gzSize / totalSize * 100}%)`);
-
         }
       }
     }

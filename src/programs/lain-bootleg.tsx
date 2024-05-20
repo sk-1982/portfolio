@@ -5,7 +5,7 @@ import lainWasm from 'lain-bootleg-bootleg-bootleg/lain-bootleg-bootleg.wasm?url
 import lainSmall from '@images/lain-small.webp';
 import { Program } from '../components/program.tsx';
 import { Window } from '../components/window.tsx';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 
 const Bootleg = () => {
 	const [mainTitle, setMainTitle] = useState<string | null>(null);
@@ -13,7 +13,6 @@ const Bootleg = () => {
 
 	useEffect(() => {
 		const onOpen = (e: LainWindowOpenEvent) => {
-			console.log(e);
 			(e.detail.isMain ? setMainTitle : setMinigameTitle)(e.detail.title);
 		};
 
@@ -30,9 +29,9 @@ const Bootleg = () => {
 		};
 	}, []);
 
-	return (<Program name="lain_win.exe" onOpen={() => {
+	return (<Program name="lain_win.exe" onOpen={useCallback(() => {
 		setTimeout(() => LainBootleg.start(), 0);
-	}}>
+	}, [])}>
 		<Window title={mainTitle ?? ''} id="lain-main" isOpen={mainTitle !== null} windowingStrategy="display"
 		        x={5} y={5} icon={lainSmall}
 		        onClose={() => {
