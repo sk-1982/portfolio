@@ -15,6 +15,7 @@ import { selected } from '@/css';
 import { useHoverTrigger } from '../hooks/use-hover-closer.ts';
 import { usePrograms } from './program.tsx';
 import calc from '@images/calc.webp';
+import lainSmall from '@images/lain-small.webp';
 
 const startMenu = css`
   min-width: 175px;
@@ -92,7 +93,12 @@ const MENU: MenuItem[] = [{
 		icon: programsSmall,
 		children: [{
 			name: 'Games',
-			icon: programsSmall
+			icon: programsSmall,
+			children: [{
+				name: 'Lain Bootleg',
+				icon: lainSmall,
+				launch: ['lain_win.exe']
+			}]
 		}, {
 			name: 'Calculator',
 			icon: calc,

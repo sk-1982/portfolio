@@ -663,7 +663,7 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 			style.height = `${height}px`;
 
 		return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize, (isMoving || disableAnimations) && windowNoTransition)}
-		             style={style} ref={ref} onMouseDown={() => context.setActiveWindow(id)}>
+		             style={style} ref={ref} onMouseDown={() => context.setActiveWindow(id)} onKeyDown={e => e.stopPropagation()} onKeyUp={e => e.stopPropagation()} onKeyPress={e => e.stopPropagation()}>
 			{ resizeHandles }
 			<ContextMenu items={menuItems}>
 				<div

@@ -1,0 +1,3 @@
+[submodule "submodules/lain-bootleg-bootleg-bootleg"]
+	path = submodules/lain-bootleg-bootleg-bootleg
+	url = https://github.com/sk-1982/lain-bootleg-bootleg-bootleg.git

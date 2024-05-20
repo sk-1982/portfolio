@@ -22,6 +22,11 @@ const Programs = () => {
       return (<CalculatorProgram />);
     }} />
 
+    <DynamicProgram name="lain_win.exe" load={async () => {
+      const { load } = await import('./programs/lain-bootleg.tsx');
+      return await load();
+    }} />
+
     <InternetExplorer />
   </>);
 };
