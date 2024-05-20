@@ -79,7 +79,7 @@ const MenuItem = ({ item, onItemSelected, iconContainerClass, className }: MenuI
 		<div className={cn(iconContainer, iconContainerClass)}>
 			{item.icon && (typeof item.icon === 'string' ? <img alt="" src={item.icon} /> : item.icon)}
 		</div>
-		{item.bold ? <b>{item.name}</b> : item.name}
+		{item.bold ? <b className={win98.bold}>{item.name}</b> : item.name}
 		{!!item.children?.length && <ChevronRight />}
 	</>);
 

@@ -9,6 +9,7 @@ import autoprefixer from 'autoprefixer';
 import { Declaration } from 'postcss';
 import { ViteMinifyPlugin } from 'vite-plugin-minify'
 import * as sass from 'sass';
+import fs from 'fs';
 
 const classNames = new Map<string, string>();
 const generator = incstr.idGenerator({
@@ -40,11 +41,6 @@ export default defineConfig(env => ({
     }
   },
   css: {
-    preprocessorOptions: {
-      scss: {
-
-      }
-    },
     modules: {
       localsConvention: 'camelCaseOnly',
       generateScopedName: (name, filename, css) => {
@@ -63,6 +59,11 @@ export default defineConfig(env => ({
       plugins: [{
         postcssPlugin: 'remove',
         Rule: rule => {
+          if (rule.selectors.some(s => /(?<![.#])(button|input)/i.test(s))) {
+            rule.walkDecls('text-shadow', n => { n.remove() });
+            rule.walkDecls('color', n => { n.remove() });
+          }
+
           if (!rule.nodes.every(n => n.type === 'decl'))
             return;
           const style = ([...rule.nodes] as Declaration[])
@@ -78,6 +79,24 @@ export default defineConfig(env => ({
         },
         AtRule: {
           'font-face': rule => {
+            let isBold = false;
+            let isMsSans = false;
+
+            rule.walkDecls('font-weight', node => {
+              if (node.value === 'bold' || node.value === '700')
+                isBold = true;
+            });
+
+            rule.walkDecls('font-family', node => {
+              if (node.value.includes("MS Sans Serif"))
+                isMsSans = true;
+            });
+
+            if (isBold && isMsSans) {
+              rule.remove();
+              return;
+            }
+
             rule.walkDecls('src', node => {
               if (/format\("woff"\)/.test(node.value))
                 node.remove();
@@ -107,7 +126,7 @@ export default defineConfig(env => ({
     preact(),
     preload({
       files: [{
-        entryMatch: /ms_sans_serif(_bold)?.woff2$/,
+        entryMatch: /ms_sans_serif.woff2$/,
         attributes: {
           type: 'font/woff2',
           as: 'font',
@@ -118,5 +137,14 @@ export default defineConfig(env => ({
     purgeCss({
       blocklist: [/select/i]
     }),
+    {
+      name: 'process-files',
+      writeBundle(opts, bundle) {
+        Object.entries(bundle).forEach(([file, data]) => {
+          if (/ms_sans_serif_bold/i.test(file) || (/ms_sans_serif/i.test(file) && file.endsWith('.woff')))
+            fs.unlinkSync(path.join('dist', file))
+        });
+      }
+    }
   ],
 }));

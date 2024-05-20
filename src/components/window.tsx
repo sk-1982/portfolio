@@ -688,7 +688,7 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
           </DropdownMenu>}
 
 					<Tooltip content={title} overflowOnly>
-						<div className={cn(win98.titleBarText, titleBarText, icon && titleIcon)}>
+						<div className={cn(win98.bold, win98.titleBarText, titleBarText, icon && titleIcon)}>
 							{title}
 						</div>
 					</Tooltip>

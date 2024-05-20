@@ -5,10 +5,12 @@ button.focused {
 	outline-offset: -4px;
 }
 
-button.active {
+button.active, button:active {
 	box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a,
 	inset -2px -2px #dfdfdf, inset 2px 2px gray;
-	text-shadow: 1px 1px #222 !important;
+	> * {
+		transform: translate(1px, 1px);
+	}
 }
 
 .title-bar.inactive .title-bar-text {
@@ -41,4 +43,9 @@ button.active {
 ::-webkit-scrollbar-button:horizontal:end:decrement
 {
 	display: none;
+}
+
+.bold {
+	letter-spacing: 1px;
+	text-shadow: 1px 0 currentColor;
 }

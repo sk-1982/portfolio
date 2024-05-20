@@ -40,13 +40,15 @@ const taskbar = css`
 `;
 
 const startButton = css`
-	font-weight: bold;
 	min-width: 0 !important;
-	padding: 0 4px;
-	display: flex;
-	align-items: center;
+  padding: 0 4px;
+		
+	> div {
+    display: flex;
+    align-items: center;
+	}
 	
-	> img {
+	img {
 		margin-right: 3px;
 		margin-left: 1px;
 	}
@@ -114,7 +116,6 @@ const taskbarItem = css`
 		
 	&.${selected} {
     background: repeating-conic-gradient(silver 0% 25%, #fff 0% 50%) 0 / 2px 2px;
-    font-weight: bold;
 	}
 `;
 
@@ -176,7 +177,7 @@ const TaskbarItem = ({ win }: { win: ContextWindow }) => {
 			onClick: () => win.onClose?.()
 		}]}>
 		<Tooltip content={win.title} overflowOnly>
-			<button className={cn(taskbarItem, windows.activeWindow === win.id && `${win98.active} ${selected}`)}
+			<button className={cn(taskbarItem, windows.activeWindow === win.id && `${win98.active} ${selected} ${win98.bold}`)}
 			                ref={ref}
 			                onClick={() => {
 												if (windows.activeWindow === win.id && !win.minimized) {
@@ -236,10 +237,12 @@ export const Taskbar = () => {
 		}}>
 			<div>
 				<Tooltip content="Click here to begin." disabled={isOpen}>
-					<button className={cn(startButton, isOpen && win98.active)}
+					<button className={cn(startButton, isOpen && win98.active, win98.bold)}
 					        onClick={() => setIsOpen(o => !o)}>
-						<img src={startFlag} alt=""/>
-						Start
+						<div>
+							<img src={startFlag} alt=""/>
+							Start
+						</div>
 					</button>
 				</Tooltip>
 
