@@ -75,7 +75,8 @@ export const Run = () => {
 				return setOpen(false);
 		}
 
-		setErrorTitle(program);
+		setOpen(false);
+		setTimeout(() => setErrorTitle(program), 0);
 	};
 
 	return (<Program name="run" onOpen={useCallback(() => setOpen(true), [])}>
@@ -98,7 +99,9 @@ export const Run = () => {
 			</div>
 		</Window>
 
-		<ErrorWindow title={errorTitle} id="run-error" onClose={() => setErrorTitle('')} width={720}
-		             error={errorTitle && `Cannot find the file '${errorTitle}' (or one of its components). Make sure the path and filename are correct and that all required libraries are available.`} />
+		<ErrorWindow title={errorTitle} id="run-error" onClose={() => {
+			setErrorTitle('');
+			programs.openProgram('run');
+		}} width={720} error={errorTitle && `Cannot find the file '${errorTitle}' (or one of its components). Make sure the path and filename are correct and that all required libraries are available.`} />
 	</Program>)
 };
