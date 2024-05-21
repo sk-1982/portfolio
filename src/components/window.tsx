@@ -138,6 +138,8 @@ const windowPlaceholder = css`
 	clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0, 4px 4px, 4px calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 4px, 4px 4px);
 `;
 
+const windowMeasuring = css`visibility: hidden`;
+
 const windowNoTransition = css`
 	transition-duration: 0s !important;
 `;
@@ -375,8 +377,11 @@ const RESIZE_DIRECTION: Record<Direction, [number, number]> = {
 export const Window = ({ contextRef, className, cornerHandle, children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
+	const shouldMeasureForCenter = (initialX === -1 || initialY === -1) && (initialHeight === -1 || initialWidth === -1);
 	initialX = initialX < 0 ? window.innerWidth / 2 - initialWidth / 2 : initialX;
 	initialY = initialY < 0 ? window.innerHeight / 2 - initialHeight / 2 - 20 : initialY;
+	const [measuring, setMeasuring] = useState(false);
+	const [initialMeasure, setInitialMeasure] = useState(shouldMeasureForCenter);
 	const [x, setX] = useState(initialX);
 	const [y, setY] = useState(initialY);
 	const [width, setWidth] = useState(initialWidth);
@@ -424,6 +429,24 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 	const previewRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
+		if (!measuring) return;
+
+		const elem = ref.current;
+
+		if (!elem) return;
+
+		const size = elem.getBoundingClientRect();
+
+		setMeasuring(false);
+		setX(window.innerWidth / 2 - size.width / 2);
+		setY(window.innerHeight / 2 - size.height / 2 - 20);
+		setTimeout(() => {
+			setDisableAnimations(false);
+			setInitialMeasure(false);
+		}, 0);
+	}, [measuring]);
+
+	useEffect(() => {
 		if (lastOpen.current === isOpen) return;
 		lastOpen.current = isOpen;
 		if (!isOpen) {
@@ -437,17 +460,25 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 			setShouldMove(false);
 			setMoving(false);
 			setResizingDirection(null);
+			setMeasuring(false);
+			setInitialMeasure(shouldMeasureForCenter);
 			return context.removeWindow(id);
 		}
 		const w = {
 			title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized, ref, setTaskbarWidth,
 			setTaskbarX, resizable, onClose
 		};
+
 		setMinimizedRestoreState({ restoreState: null });
 		context.createWindow(w);
 		if (contextRef)
 			contextRef.current = w;
 		context.setActiveWindow(id);
+
+		if (shouldMeasureForCenter) {
+			setMeasuring(true);
+			setDisableAnimations(true);
+		}
 	}, [ref, lastOpen, isOpen, context.createWindow, context.removeWindow, title, icon, width, height, x, y, id, maximized, minimized,
 		initialX, initialY, setMaximized, setMinimized, setTaskbarX, setTaskbarWidth, setMinimizedRestoreState, initialWidth, initialHeight,
 		setShouldAnimateUnmaximize, resizable]);
@@ -662,8 +693,21 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 		if (height >= 0)
 			style.height = `${height}px`;
 
-		return (<div className={cn(windowClass, win98.window, restoreState, !isOpen && windowHidden, isMaximized && windowMaximize, shouldAnimateUnmaximize && windowUnmaximize, (isMoving || disableAnimations) && windowNoTransition)}
-		             style={style} ref={ref} onMouseDown={() => context.setActiveWindow(id)} onKeyDown={e => e.stopPropagation()} onKeyUp={e => e.stopPropagation()} onKeyPress={e => e.stopPropagation()}>
+		return (<div className={cn(windowClass,
+			win98.window,
+			restoreState,
+			!isOpen && windowHidden,
+			isMaximized && windowMaximize,
+			shouldAnimateUnmaximize && windowUnmaximize,
+			(isMoving || disableAnimations) && windowNoTransition,
+			(measuring || (initialMeasure && shouldMeasureForCenter)) && windowMeasuring
+		)}
+		             style={style}
+		             ref={ref}
+		             onMouseDown={() => context.setActiveWindow(id)}
+		             onKeyDown={e => e.stopPropagation()}
+		             onKeyUp={e => e.stopPropagation()}
+		             onKeyPress={e => e.stopPropagation()}>
 			{ resizeHandles }
 			<ContextMenu items={menuItems}>
 				<div
