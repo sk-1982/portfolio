@@ -5,6 +5,7 @@ import { Desktop } from './components/desktop.tsx';
 import { InternetExplorer } from './programs/internet-explorer.tsx';
 import { useState, useEffect } from 'preact/hooks';
 import { Notepad } from './programs/notepad.tsx';
+import { Run } from './programs/run.tsx';
 
 const Programs = () => {
   const programs = usePrograms();
@@ -30,6 +31,7 @@ const Programs = () => {
 
     <InternetExplorer />
     <Notepad />
+    <Run />
   </>);
 };
 

@@ -10,9 +10,9 @@ type Program = {
 const ProgramContext = createContext<{
 	register: (program: Program) => void,
 	unregister: (name: string) => void,
-	openProgram: (name: string, ...args: string[]) => void,
+	openProgram: (name: string, ...args: string[]) => boolean,
 	queueOpen: (name: string, ...args: string[]) => void,
-}>({ register: () => {}, unregister: () => {}, openProgram: () => {}, queueOpen: () => {} });
+}>({ register: () => {}, unregister: () => {}, openProgram: () => false, queueOpen: () => {} });
 
 export const usePrograms = () => useContext(ProgramContext);
 
@@ -20,7 +20,9 @@ export const ProgramContextProvider = ({ children }: { children: ComponentChildr
 	const [programList, setProgramList] = useState<Program[]>([]);
 	const queuedLaunches = useRef<Record<string, string[]>>({});
 	const openProgram = useCallback((name: string, ...args: string[]) => {
-		programList.find(p => p.name === name)?.onOpen(...args);
+		const p = programList.find(p => p.name === name);
+		p?.onOpen(...args);
+		return !!p;
 	}, [programList]);
 	const register = useCallback((program: Program) => {
 		setProgramList(l => [...l, program]);

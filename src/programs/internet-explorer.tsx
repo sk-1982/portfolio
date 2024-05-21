@@ -11,7 +11,6 @@ import { ResizableSeparator, ResizeHandle } from '../components/resizable-separa
 import { Separator } from '../components/separator.tsx';
 import { SmallButton, SmallButtonGroup } from '../components/small-button.tsx';
 import { ChevronDown } from '../components/chevron-down.tsx';
-import { Profile } from '../pages/profile.tsx';
 import { Close } from '../components/close.tsx';
 import { Check } from '../components/check.tsx';
 
@@ -34,10 +33,10 @@ import iexploreDocumentSmall from '@images/iexplore-document-small.webp';
 import iexploreSiteSmall from '@images/iexplore-site-small.webp';
 import iexploreRefreshDisabled from '@images/iexplore-refresh-disabled.webp';
 import iexploreRefresh from '@images/iexplore-refresh.webp';
-import errorIcon from '@images/error.webp';
 import globeSmall from '@images/globe-small.webp';
 import computerSmall from '@images/computer-small.webp';
 import { IE_DOMAIN_OVERRIDES, IE_FAVORITES, IE_LOCAL_PAGES, IEXPLORE_HOME } from '../config.tsx';
+import { ErrorWindow } from '../components/error-window.tsx';
 
 const menuBar = css`
 	display: flex;
@@ -276,26 +275,6 @@ const favoritesMenuItem = css`
 
 const favoritesIconContainer = css`
 	margin: 0 10px 1px -1px;
-`;
-
-const errorModal = css`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	> div {
-		display: flex;
-		align-items: center;
-		padding: 4px;
-	}
-	img {
-		margin-right: 18px;
-	}
-	button {
-		margin: 16px 0 6px 0;
-		span {
-			padding-left: .85px;
-		}
-	}
 `;
 
 export type IExploreContext = {
@@ -665,20 +644,8 @@ export const InternetExplorer = () => {
 				inputRef.current.value = u;
 		}, 0);
 	}, [windows, isOpen, pushHistory, getUrl])}>
-		<Window title="Address Bar" id="iexplore-address"
-		        isOpen={!!error} onClose={() => setError('')} x={-1} y={-1}>
-			<div className={`${win98.windowBody} ${errorModal}`}>
-				<div>
-					<img src={errorIcon} alt="Error" />
-					{ error }
-				</div>
-				<button onClick={() => setError('')}>
-					<span>
-						OK
-					</span>
-				</button>
-			</div>
-		</Window>
+		<ErrorWindow title="Address Bar" id="iexplore-address" error={error}
+		             onClose={() => setError('')} />
 
 		<Window title={`${history[historyIndex]} - Microsoft Internet Explorer`}
 		        id="iexplore.exe"

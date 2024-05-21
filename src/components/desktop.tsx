@@ -81,7 +81,8 @@ const iconsContainer = css`
 `
 
 export type DesktopIcon = {
-	name: string | VNode<any>,
+	name: string,
+	content?: VNode<any>
 	icon: string,
 	launch?: string[],
 	onOpen?: () => void,
@@ -127,7 +128,7 @@ export const Desktop = () => {
 						</div>
 					</div>
 					<div>
-						{icon.name}
+						{icon.content ?? icon.name}
 					</div>
 				</div>
 			</ContextMenu>))}

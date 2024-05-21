@@ -64,7 +64,8 @@ export const START_MENU: MenuItem[] = [{
 export const IEXPLORE_HOME = 'C:\\WINDOWS\\Desktop\\My Profile.html';
 
 export const DESKTOP_ICONS: DesktopIcon[] = [{
-	name: (<>Internet<br />Explorer</>),
+	name: 'Internet Explorer',
+	content: (<>Internet<br />Explorer</>),
 	icon: iexplore,
 	launch: ['iexplore.exe']
 }, {
