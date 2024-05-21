@@ -6,8 +6,7 @@ import { selected } from '@/css';
 import cn from 'clsx/lite';
 import { usePrograms } from './program.tsx';
 
-import iexplore from '@images/iexplore.webp';
-import iexploreDocument from '@images/iexplore-document.webp';
+import shortcut from '@images/shortcut.webp';
 import { DESKTOP_ICONS, IEXPLORE_HOME } from '../config.tsx';
 import { VNode } from 'preact';
 
@@ -33,6 +32,7 @@ const desktop = css`
 			align-items: center;
 			justify-content: center;
 			margin-bottom: 4px;
+			position: relative;
 			img {
 				display: block;
 			}
@@ -58,7 +58,7 @@ const desktop = css`
       > div:last-child {
         background: #000080;
 	      box-sizing: border-box;
-	      padding: 1px;
+	      padding: 1px 2px;
 	      border: 1px dotted #fff;
       }
 			> div:first-child > div > div {
@@ -69,6 +69,13 @@ const desktop = css`
 	}
 `;
 
+const shortcutIcon = css`
+	position: absolute;
+	z-index: 1;
+	left: 0;
+	bottom: 0;
+`;
+
 const iconsContainer = css`
 	pointer-events: none;
 `
@@ -77,7 +84,8 @@ export type DesktopIcon = {
 	name: string | VNode<any>,
 	icon: string,
 	launch?: string[],
-	onOpen?: () => void
+	onOpen?: () => void,
+	isShortcut?: boolean
 };
 
 export const Desktop = () => {
@@ -112,6 +120,7 @@ export const Desktop = () => {
 					icon.onOpen?.();
 				}}>
 					<div style={{'--m': `url(${icon.icon})`}}>
+						{icon.isShortcut && <img src={shortcut} alt="" className={shortcutIcon} /> }
 						<div>
 							<img draggable={false} src={icon.icon} alt=""/>
 							<div/>
