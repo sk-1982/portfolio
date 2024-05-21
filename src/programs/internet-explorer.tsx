@@ -348,6 +348,32 @@ export const InternetExplorer = () => {
 		return { open: pushHistory };
 	}, [pushHistory]);
 
+	const getUrl = useCallback((val: string, ignoreHistory: boolean = false) => {
+		val = val.trim();
+
+		if (/^[A-Z]:/i.test(val)) {
+			if (IE_LOCAL_PAGES.has(val.toLowerCase())) {
+				if (val !== history[historyIndex] || ignoreHistory)
+					return val;
+			} else {
+				setError(`Cannot find the file or item '${val}'. Make sure the path and file name are correct. Type 'go <SearchText>' to use AutoSearch.`)
+			}
+
+			return null;
+		}
+
+		let url: string;
+
+		if (/^https?:/i.test(val) ||
+			/^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9\-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/i.test(val.split('/')[0])) {
+			url = 'https://' + val.replace(/^https?:\/{0,2}/i, '');
+		} else {
+			url = `https://wiby.me?q=${encodeURIComponent(val.replace(/^go\s+/i, ''))}`
+		}
+
+		return url;
+	}, [history]);
+
 	const content = useCallback((status: WindowState): [boolean, string, VNode<any> | null] => {
 		const last = lastHistoryIndex.current;
 		lastHistoryIndex.current = historyIndex;
@@ -402,27 +428,10 @@ export const InternetExplorer = () => {
 			if (!input) return;
 
 			input.blur();
-			const val = input.value.trim();
+			const url = getUrl(input.value);
 
-			if (/^[A-Z]:/i.test(val)) {
-				if (IE_LOCAL_PAGES.has(val.toLowerCase()) && val !== history[historyIndex])
-					pushHistory(val);
-				else
-					setError(`Cannot find the file or item '${val}'. Make sure the path and file name are correct. Type 'go <SearchText>' to use AutoSearch.`)
-
-				return;
-			}
-
-			let url: string;
-
-			if (/^https?:/i.test(val) ||
-				/^((?!-))(xn--)?[a-z0-9][a-z0-9-_]{0,61}[a-z0-9]{0,1}\.(xn--)?([a-z0-9\-]{1,61}|[a-z0-9-]{1,30}\.[a-z]{2,})$/i.test(val.split('/')[0])) {
-				url = 'https://' + val.replace(/^https?:\/{0,2}/i, '');
-			} else {
-				url = `https://wiby.me?q=${encodeURIComponent(val.replace(/^go\s+/i, ''))}`
-			}
-
-			pushHistory(url);
+			if (url)
+				pushHistory(url);
 		};
 
 		const refresh = () => {
@@ -634,25 +643,28 @@ export const InternetExplorer = () => {
 				</div>
 			</div>
 		</>);
-	}, [isOpen, pushHistory, prevHistory, history, nextHistory, historyIndex, content, favoritesOpen, inputRef, loading]);
+	}, [isOpen, pushHistory, prevHistory, history, nextHistory, historyIndex, content, favoritesOpen, inputRef, loading, getUrl]);
 
 	return (<Program name="iexplore.exe" onOpen={useCallback((location: string) => {
 		windows.setActiveWindow("iexplore.exe");
 
 		if (isOpen) {
 			if (!location) return;
-			return pushHistory(location);
+			const u = getUrl(location)
+			if (u)
+				return pushHistory(u);
 		}
 
-		location ||= IEXPLORE_HOME;
+		const u = getUrl(location || IEXPLORE_HOME, true);
+		if (!u) return;
 		setHistoryIndex(0);
-		setHistory([location]);
+		setHistory([u]);
 		setOpen(true);
 		setTimeout(() => {
 			if (inputRef.current)
-				inputRef.current.value = location;
+				inputRef.current.value = u;
 		}, 0);
-	}, [windows, isOpen, pushHistory])}>
+	}, [windows, isOpen, pushHistory, getUrl])}>
 		<Window title="Address Bar" id="iexplore-address"
 		        isOpen={!!error} onClose={() => setError('')} x={-1} y={-1}>
 			<div className={`${win98.windowBody} ${errorModal}`}>
