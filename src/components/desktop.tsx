@@ -8,7 +8,8 @@ import { usePrograms } from './program.tsx';
 
 import iexplore from '@images/iexplore.webp';
 import iexploreDocument from '@images/iexplore-document.webp';
-import { IEXPLORE_HOME } from '../programs/internet-explorer.tsx';
+import { DESKTOP_ICONS, IEXPLORE_HOME } from '../config.tsx';
+import { VNode } from 'preact';
 
 const desktop = css`
 	width: 100%;
@@ -47,14 +48,18 @@ const desktop = css`
 		> div:last-child {
 			background: #008080;
 			color: #fff;
-			padding: 2px;
+			padding: 2px 3px;
 			display: flex;
 			flex-wrap: wrap;
 			gap: 0 2px;
+			text-align: center;
 		}
 		&.${selected} {
       > div:last-child {
-          background: #000080;
+        background: #000080;
+	      box-sizing: border-box;
+	      padding: 1px;
+	      border: 1px dotted #fff;
       }
 			> div:first-child > div > div {
 				background: #000080;
@@ -68,15 +73,12 @@ const iconsContainer = css`
 	pointer-events: none;
 `
 
-const ICONS = [{
-	name: (<>Internet<br />Explorer</>),
-	icon: iexplore,
-	launch: ['iexplore.exe']
-}, {
-	name: IEXPLORE_HOME.split(/[\\\/]/g).at(-1),
-	icon: iexploreDocument,
-	launch: ['iexplore.exe', IEXPLORE_HOME]
-}];
+export type DesktopIcon = {
+	name: string | VNode<any>,
+	icon: string,
+	launch?: string[],
+	onOpen?: () => void
+};
 
 export const Desktop = () => {
 	const windows = useWindows();
@@ -93,17 +95,21 @@ export const Desktop = () => {
 		</ContextMenu>
 
 		<div className={`${desktop} ${iconsContainer}`} onClick={() => windows.setActiveWindow(null)}>
-			{ICONS.map((icon, i) => (<ContextMenu items={[{
+			{DESKTOP_ICONS.map((icon, i) => (<ContextMenu items={[{
 				name: 'Open',
 				onClick: () => {
 					setSelectedIcon(null);
-					programs.openProgram(icon.launch[0], ...icon.launch.slice(1))
+					if (icon.launch)
+						programs.openProgram(icon.launch[0], ...icon.launch.slice(1));
+					icon.onOpen?.();
 				}
 			}]} key={i}>
 				<div className={cn(selectedIcon === i && selected)}
 				     onMouseDown={() => setSelectedIcon(i)} onDblClick={() => {
 					setSelectedIcon(null);
-					programs.openProgram(icon.launch[0], ...icon.launch.slice(1))
+					if (icon.launch)
+						programs.openProgram(icon.launch[0], ...icon.launch.slice(1))
+					icon.onOpen?.();
 				}}>
 					<div style={{'--m': `url(${icon.icon})`}}>
 						<div>

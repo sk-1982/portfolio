@@ -31,13 +31,13 @@ import chevronRightLine from '@images/chevron-right-line.webp';
 import iexploreGo from '@images/iexplore-go.webp';
 import iexploreGoDisabled from '@images/iexplore-go-disabled.webp';
 import iexploreDocumentSmall from '@images/iexplore-document-small.webp';
-import iexploreDocumentXs from '@images/iexplore-document-xs.webp';
 import iexploreSiteSmall from '@images/iexplore-site-small.webp';
 import iexploreRefreshDisabled from '@images/iexplore-refresh-disabled.webp';
 import iexploreRefresh from '@images/iexplore-refresh.webp';
 import errorIcon from '@images/error.webp';
 import globeSmall from '@images/globe-small.webp';
 import computerSmall from '@images/computer-small.webp';
+import { IE_DOMAIN_OVERRIDES, IE_FAVORITES, IE_LOCAL_PAGES, IEXPLORE_HOME } from '../config.tsx';
 
 const menuBar = css`
 	display: flex;
@@ -302,41 +302,12 @@ export type IExploreContext = {
 	open: (url: string) => void
 };
 
-export const IEXPLORE_HOME = 'C:\\WINDOWS\\Desktop\\My Profile.html';
+export type IEFavorite = {
+	name: string,
+	url: string,
+	icon?: string
+};
 
-const LOCAL_PAGES = new Map<string, (explorer: IExploreContext) => VNode<any>>([
-	[IEXPLORE_HOME.toLowerCase(), Profile]
-]);
-
-const DOMAIN_OVERRIDES = new Map<string, {
-	type?: 'native',
-	year?: number,
-	scripts?: boolean
-}>([
-	['maia.crimew.gay', { type: 'native' }],
-	['goop.house', { type: 'native' }],
-	['wiby.me', { type: 'native' }],
-	['cyberia-anime.com', { scripts: false }],
-	['copy.sh', { type: 'native' }]
-]);
-
-const FAVORITES = [{
-	name: 'My Profile',
-	url: IEXPLORE_HOME,
-	icon: iexploreDocumentXs
-}, {
-	name: 'Evaotaku',
-	url: 'https://evaotaku.com',
-}, {
-	name: 'CyberiaCafe',
-	url: 'https://cyberia-anime.com/'
-}, {
-	name: 'John Titor',
-	url: 'https://timetravelinstitute.com/ttiforum/f1/619.php'
-}, {
-	name: 'Virtual 98',
-	url: 'https://copy.sh/v86/?profile=windows98'
-}];
 
 export const InternetExplorer = () => {
 	const [isOpen, setOpen] = useState(false);
@@ -387,7 +358,7 @@ export const InternetExplorer = () => {
 			return [false, '', null];
 		}
 
-		const localPage = LOCAL_PAGES.get(url.toLowerCase());
+		const localPage = IE_LOCAL_PAGES.get(url.toLowerCase());
 		if (localPage){
 			setLoading(false);
 			return [true, iexploreDocumentSmall, localPage(iexplore)];
@@ -401,7 +372,7 @@ export const InternetExplorer = () => {
 			setLoading(false);
 			return [false, '', null];
 		}
-		const overrides = DOMAIN_OVERRIDES.get(u.host) ?? DOMAIN_OVERRIDES.get(u.host.replace(/^www\./, ''));
+		const overrides = IE_DOMAIN_OVERRIDES.get(u.host) ?? IE_DOMAIN_OVERRIDES.get(u.host.replace(/^www\./, ''));
 
 		let iframeSrc = overrides?.type === 'native' ? u.toString() : `https://theoldnet.com/get?${new URLSearchParams({
 			url: u.href.slice(u.protocol.length + 2),
@@ -434,7 +405,7 @@ export const InternetExplorer = () => {
 			const val = input.value.trim();
 
 			if (/^[A-Z]:/i.test(val)) {
-				if (LOCAL_PAGES.has(val.toLowerCase()) && val !== history[historyIndex])
+				if (IE_LOCAL_PAGES.has(val.toLowerCase()) && val !== history[historyIndex])
 					pushHistory(val);
 				else
 					setError(`Cannot find the file or item '${val}'. Make sure the path and file name are correct. Type 'go <SearchText>' to use AutoSearch.`)
@@ -462,7 +433,7 @@ export const InternetExplorer = () => {
 			}
 		};
 
-		const favorites = FAVORITES.map(({ name, url, icon }) => ({
+		const favorites = IE_FAVORITES.map(({ name, url, icon }) => ({
 			name,
 			onClick: () => pushHistory(url),
 			icon: icon ?? iexploreSiteSmall
@@ -621,7 +592,7 @@ export const InternetExplorer = () => {
 					</div>
 					<Separator orientation="horizontal" />
 					<div className={favoritesContent}>
-						{FAVORITES.map((item, index) => (<div key={index} className={cursors.pointer} onClick={() => pushHistory(item.url)}>
+						{IE_FAVORITES.map((item, index) => (<div key={index} className={cursors.pointer} onClick={() => pushHistory(item.url)}>
 							<img src={item.icon ?? iexploreSiteSmall} alt="" />
 							<span>{ item.name }</span>
 						</div>))}

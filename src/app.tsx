@@ -4,6 +4,7 @@ import { DynamicProgram, usePrograms } from './components/program.tsx';
 import { Desktop } from './components/desktop.tsx';
 import { InternetExplorer } from './programs/internet-explorer.tsx';
 import { useState, useEffect } from 'preact/hooks';
+import { Notepad } from './programs/notepad.tsx';
 
 const Programs = () => {
   const programs = usePrograms();
@@ -28,6 +29,7 @@ const Programs = () => {
     }} />
 
     <InternetExplorer />
+    <Notepad />
   </>);
 };
 

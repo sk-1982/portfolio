@@ -718,7 +718,7 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 			}) : children }
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized,
-		children, id, context, title, onClose, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations,
+		children, id, context, title, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations,
 		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection]);
 
 	const preview = useMemo(() => {

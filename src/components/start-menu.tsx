@@ -1,12 +1,5 @@
 import win98 from '@98.css';
 import windows98StartText from '@images/start-windows98.webp';
-import programs from '@images/programs.webp';
-import settings from '@images/settings.webp';
-import favorites from '@images/favorites.webp';
-import documents from '@images/documents.webp';
-import programsSmall from '@images/programs-small.webp';
-import iexploreSmall from '@images/iexplore-small.webp';
-import github from '@images/github.webp';
 import { Separator } from './separator.tsx';
 import { ChevronRight } from './chevron-right.tsx';
 import { SideMenu } from './side-menu.tsx';
@@ -14,8 +7,7 @@ import { css } from '@linaria/core';
 import { selected } from '@/css';
 import { useHoverTrigger } from '../hooks/use-hover-closer.ts';
 import { usePrograms } from './program.tsx';
-import calc from '@images/calc.webp';
-import lainSmall from '@images/lain-small.webp';
+import { START_MENU } from '../config.tsx';
 
 const startMenu = css`
   min-width: 175px;
@@ -73,52 +65,13 @@ const sideMenuItem = css`
 
 const menuName = css`padding-right: 16px`;
 
-type MenuItem = '|' | ({
+export type MenuItem = '|' | ({
 	name: string,
 	icon: string,
 	launch?: string[],
 	link?: string,
 	children?: MenuItem[]
 });
-
-const MENU: MenuItem[] = [{
-	name: 'View Source on Github',
-	icon: github,
-	link: 'https://github.com/sk-1982'
-}, '|', {
-	name: 'Programs',
-	icon: programs,
-	children: [{
-		name: 'Accessories',
-		icon: programsSmall,
-		children: [{
-			name: 'Games',
-			icon: programsSmall,
-			children: [{
-				name: 'Lain Bootleg',
-				icon: lainSmall,
-				launch: ['lain_win.exe']
-			}]
-		}, {
-			name: 'Calculator',
-			icon: calc,
-			launch: ['calc.exe']
-		}]
-	}, {
-		name: 'Internet Explorer',
-		icon: iexploreSmall,
-		launch: ['iexplore.exe']
-	}]
-}, {
-	name: 'Favorites',
-	icon: favorites,
-}, {
-	name: 'Documents',
-	icon: documents
-}, {
-	name: 'Settings',
-	icon: settings
-}];
 
 type StartMenuProps = {
 	className?: string,
@@ -169,7 +122,7 @@ export const StartMenu = ({ className, onClose }: StartMenuProps) => {
 			<img src={windows98StartText} alt="Windows98" draggable={false}/>
 		</div>
 		<div className={menu}>
-			{MENU.map((item, i) => {
+			{START_MENU.map((item, i) => {
 				if (item === '|')
 					return (<Separator key={i} padding orientation="horizontal"/>)
 
