@@ -80,6 +80,7 @@ const windowClass = css`
 	--hide-2: none;
 	--hide-3: none;
 		
+	outline: none;
 	transform: translate(var(--x), var(--y));
 	position: fixed;
 	top: 0;
@@ -347,7 +348,10 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	onClose: () => void,
 	className?: string,
 	cornerHandle?: boolean,
-	contextRef?: MutableRef<ContextWindow | null>
+	contextRef?: MutableRef<ContextWindow | null>,
+	onKeyDown?: (e: KeyboardEvent) => void,
+	onKeyUp?: (e: KeyboardEvent) => void,
+	onKeyPress?: (e: KeyboardEvent) => void,
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -374,7 +378,13 @@ const RESIZE_DIRECTION: Record<Direction, [number, number]> = {
 	se: [1, 1]
 };
 
-export const Window = ({ contextRef, className, cornerHandle, children, title, icon, width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight, x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized, minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose }: WindowProps) => {
+export const Window = ({
+	                       contextRef, className, cornerHandle, children, title, icon,
+	                       width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight,
+	                       x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized,
+	                       minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose,
+	                       onKeyUp, onKeyPress, onKeyDown
+                       }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
 	const shouldMeasureForCenter = (initialX === -1 || initialY === -1) && (initialHeight === -1 || initialWidth === -1);
@@ -498,6 +508,7 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 			if (contextRef)
 				contextRef.current = w;
 			context.updateWindow(w);
+			setTimeout(() => ref.current?.focus(), 0);
 		}
 	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized,
 		setMinimizedRestoreState, ref, setTaskbarX, setTaskbarWidth, resizable]);
@@ -704,10 +715,11 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 		)}
 		             style={style}
 		             ref={ref}
+		             tabIndex={-1}
 		             onMouseDown={() => context.setActiveWindow(id)}
-		             onKeyDown={e => e.stopPropagation()}
-		             onKeyUp={e => e.stopPropagation()}
-		             onKeyPress={e => e.stopPropagation()}>
+		             onKeyDown={e => { e.stopPropagation(); onKeyDown?.(e) }}
+		             onKeyUp={e => { e.stopPropagation(); onKeyUp?.(e) }}
+		             onKeyPress={e => { e.stopPropagation(); onKeyPress?.(e) }}>
 			{ resizeHandles }
 			<ContextMenu items={menuItems}>
 				<div
@@ -763,7 +775,14 @@ export const Window = ({ contextRef, className, cornerHandle, children, title, i
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized,
 		children, id, context, title, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations,
-		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection]);
+		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection, onKeyDown, onKeyUp, onKeyPress]);
+
+	useEffect(() => {
+		if (context.activeWindow === id)
+			ref.current?.focus();
+		else
+			ref.current?.blur();
+	}, [context.activeWindow, id]);
 
 	const preview = useMemo(() => {
 		if (!isMoving && !resizingDirection) return null;

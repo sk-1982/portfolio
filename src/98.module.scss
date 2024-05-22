@@ -1,5 +1,9 @@
 @import '98.css';
 
+button > * {
+	display: block;
+}
+
 button.focused {
 	outline: 1px dotted black;
 	outline-offset: -4px;
@@ -18,9 +22,9 @@ button.active, button:not(:disabled):active {
 }
 
 .title-bar-controls button {
-	img, svg {
-		margin-top: 2px;
-	}
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .status-bar {

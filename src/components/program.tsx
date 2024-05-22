@@ -61,9 +61,9 @@ export const Program = ({ name, onOpen, children }: ProgramProps) => {
 	return (<>{ children }</>);
 };
 
-type SimpleProgramProps = { name: string } & Omit<WindowProps, 'isOpen' | 'onClose' | 'id'>;
+type SimpleProgramProps = { name: string, onOpen?: () => void } & Omit<WindowProps, 'isOpen' | 'onClose' | 'id'>;
 
-export const SimpleProgram = ({ name, children, ...windowProps }: SimpleProgramProps) => {
+export const SimpleProgram = ({ name, children, onOpen, ...windowProps }: SimpleProgramProps) => {
 	const [isOpen, setOpen] = useState(false);
 	const windows = useWindows();
 	const ref = useRef<ContextWindow | null>(null);
@@ -71,6 +71,7 @@ export const SimpleProgram = ({ name, children, ...windowProps }: SimpleProgramP
 	return (<Program name={name} onOpen={useCallback(() => {
 		setOpen(true);
 		windows.setActiveWindow(name);
+		onOpen?.();
 		if (ref.current?.minimized) ref.current?.setMinimized(false);
 	}, [windows, name])}>
 		<Window isOpen={isOpen} onClose={() => setOpen(false)} {...windowProps} id={name} contextRef={ref}>
