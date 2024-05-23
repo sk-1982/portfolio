@@ -29,6 +29,11 @@ const Programs = () => {
       return await load();
     }} />
 
+    <DynamicProgram name="winmine.exe" load={async () => {
+      const { Minesweeper } = await import('./programs/minesweeper.tsx');
+      return (<Minesweeper />);
+    }} />
+
     <InternetExplorer />
     <Notepad />
     <Run />
