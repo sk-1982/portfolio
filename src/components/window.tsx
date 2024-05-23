@@ -32,14 +32,20 @@ const windowClass = css`
       clip-path: rect(3px calc(100% - 3px) 23px 3px);
       transform: translate(var(--x), var(--y));
       z-index: 1000000;
+	    top: 0;
+	    left: 0;
     }
     99.99% {
       clip-path: rect(3px var(--w2) 23px 3px);
       transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
       z-index: 1000000;
+      top: 0;
+      left: 0;
     }
     100% {
       clip-path: rect(0 0 0 0);
+      top: 0;
+      left: 0;
     }
   }
   @keyframes restore {
@@ -47,11 +53,15 @@ const windowClass = css`
       clip-path: rect(3px var(--w2) 23px 3px);
       transform: translate(calc(var(--x2) - 3px), calc(100vh - 26px));
       z-index: 1000000;
+      top: 0;
+      left: 0;
     }
     100% {
       clip-path: rect(3px calc(100% - 3px) 23px 3px);
       transform: translate(var(--x), var(--y));
       z-index: 1000000;
+      top: 0;
+      left: 0;
     }
   }
 
@@ -59,6 +69,8 @@ const windowClass = css`
     @keyframes #{$name} {
       to {
         clip-path: rect(3px calc(100% - 3px) 23px 3px);
+        top: 0;
+        left: 0;
       }
     }
   }
@@ -81,10 +93,9 @@ const windowClass = css`
 	--hide-3: none;
 		
 	outline: none;
-	transform: translate(var(--x), var(--y));
 	position: fixed;
-	top: 0;
-	left: 0;
+  top: var(--y);
+  left: var(--x);
 	animation: var(--minimize), var(--maximize), var(--restore), var(--unmaximize);
   transition-property: top, right, left, bottom, width, transform;
   transition-duration: .25s;
@@ -98,6 +109,12 @@ const windowClass = css`
 		animation-iteration-count: 1;
 		animation-timing-function: steps(2, start);
 	}
+`;
+
+const windowTransform = css`
+  transform: translate(var(--x), var(--y));
+	left: 0;
+	top: 0;
 `;
 
 const windowMinimize = css`
@@ -352,7 +369,8 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	onKeyDown?: (e: KeyboardEvent) => void,
 	onKeyUp?: (e: KeyboardEvent) => void,
 	onKeyPress?: (e: KeyboardEvent) => void,
-	focusRef?: MutableRef<HTMLElement | null>
+	focusRef?: MutableRef<HTMLElement | null>,
+	positionStrategy?: 'transform' | 'position'
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -384,7 +402,7 @@ export const Window = ({
 	                       width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight,
 	                       x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized,
 	                       minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose,
-	                       onKeyUp, onKeyPress, onKeyDown, focusRef
+	                       onKeyUp, onKeyPress, onKeyDown, focusRef, positionStrategy
                        }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
@@ -712,7 +730,8 @@ export const Window = ({
 			isMaximized && windowMaximize,
 			shouldAnimateUnmaximize && windowUnmaximize,
 			(isMoving || disableAnimations) && windowNoTransition,
-			(measuring || (initialMeasure && shouldMeasureForCenter)) && windowMeasuring
+			(measuring || (initialMeasure && shouldMeasureForCenter)) && windowMeasuring,
+			positionStrategy !== 'position' && windowTransform
 		)}
 		             style={style}
 		             ref={ref}
@@ -775,7 +794,7 @@ export const Window = ({
 			}) : children }
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized,
-		children, id, context, title, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations,
+		children, id, context, title, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, positionStrategy,
 		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection, onKeyDown, onKeyUp, onKeyPress]);
 
 	useEffect(() => {

@@ -19,6 +19,8 @@ const desktop = css`
 	grid-auto-flow: column;
 	grid-template-rows: repeat(auto-fill, 75px);
 	grid-template-columns: 75px;
+	padding-bottom: 29px;
+	box-sizing: border-box;
 	> div {
 		pointer-events: all;
 		display: flex;

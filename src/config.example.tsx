@@ -105,3 +105,8 @@ export const IE_DOMAIN_OVERRIDES = new Map<string, {
 export const NOTEPAD_FILES = new Map<string, string>([
 	['C:\\WINDOWS\\Desktop\\test.txt'.toLowerCase(), 'test']
 ]);
+
+export const DESKTOP_CONTEXT: MenuItem[] = [{
+	name: 'Wallpaper by Brad Barrish',
+	link: 'https://bradbarrish.com'
+}];

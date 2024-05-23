@@ -34,6 +34,11 @@ const Programs = () => {
       return (<Minesweeper />);
     }} />
 
+    <DynamicProgram name="sol.exe" load={async () => {
+      const { load } = await import('./programs/solitaire.tsx');
+      return await load();
+    }} />
+
     <InternetExplorer />
     <Notepad />
     <Run />
