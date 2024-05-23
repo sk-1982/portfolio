@@ -80,7 +80,7 @@ export const Run = () => {
 	};
 
 	return (<Program name="run" onOpen={useCallback(() => setOpen(true), [])}>
-		<Window id="run" title="Run" x={8} y={window.innerHeight - 40 - 163} width={347} height={163} isOpen={isOpen} onClose={() => setOpen(false)}>
+		<Window id="run" title="Run" x={8} y={window.innerHeight - 40 - 163} width={347} height={163} isOpen={isOpen} onClose={() => setOpen(false)} focusRef={inputRef}>
 			<div className={container}>
 				<div className={header}>
 					<img src={runLarge} alt="" />

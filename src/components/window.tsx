@@ -352,6 +352,7 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	onKeyDown?: (e: KeyboardEvent) => void,
 	onKeyUp?: (e: KeyboardEvent) => void,
 	onKeyPress?: (e: KeyboardEvent) => void,
+	focusRef?: MutableRef<HTMLElement | null>
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -383,7 +384,7 @@ export const Window = ({
 	                       width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight,
 	                       x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized,
 	                       minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose,
-	                       onKeyUp, onKeyPress, onKeyDown
+	                       onKeyUp, onKeyPress, onKeyDown, focusRef
                        }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
@@ -508,7 +509,7 @@ export const Window = ({
 			if (contextRef)
 				contextRef.current = w;
 			context.updateWindow(w);
-			setTimeout(() => ref.current?.focus(), 0);
+			setTimeout(() => (focusRef?.current ?? ref.current)?.focus(), 0);
 		}
 	}, [isOpen, context.updateWindow, title, icon, width, height, x, y, id, maximized, minimized, setMaximized, setMinimized,
 		setMinimizedRestoreState, ref, setTaskbarX, setTaskbarWidth, resizable]);
@@ -779,9 +780,9 @@ export const Window = ({
 
 	useEffect(() => {
 		if (context.activeWindow === id)
-			ref.current?.focus();
+			(focusRef?.current ?? ref.current)?.focus();
 		else
-			ref.current?.blur();
+			(focusRef?.current ?? ref.current)?.blur();
 	}, [context.activeWindow, id]);
 
 	const preview = useMemo(() => {
