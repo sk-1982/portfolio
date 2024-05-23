@@ -35,6 +35,13 @@ const getName = (key: string) => {
 
 // https://vitejs.dev/config/
 export default defineConfig(env => ({
+  build: {
+    assetsInlineLimit: f => {
+      if (f.includes('src/pages/'))
+        return false;
+      return undefined;
+    }
+  },
   resolve: {
     alias: {
       '@images': path.resolve(__dirname, './src/assets/images'),
