@@ -4,8 +4,6 @@ import { DynamicProgram, usePrograms } from './components/program.tsx';
 import { Desktop } from './components/desktop.tsx';
 import { InternetExplorer } from './programs/internet-explorer.tsx';
 import { useState, useEffect } from 'preact/hooks';
-import { Notepad } from './programs/notepad.tsx';
-import { Run } from './programs/run.tsx';
 
 const Programs = () => {
   const programs = usePrograms();
@@ -39,9 +37,17 @@ const Programs = () => {
       return await load();
     }} />
 
+    <DynamicProgram name="notepad.exe" load={async () => {
+      const { Notepad } = await import('./programs/notepad.tsx');
+      return (<Notepad />);
+    }} />
+
+    <DynamicProgram name="run" load={async () => {
+      const { Run } = await import('./programs/run.tsx');
+      return (<Run />);
+    }} />
+
     <InternetExplorer />
-    <Notepad />
-    <Run />
   </>);
 };
 
