@@ -370,7 +370,8 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	onKeyUp?: (e: KeyboardEvent) => void,
 	onKeyPress?: (e: KeyboardEvent) => void,
 	focusRef?: MutableRef<HTMLElement | null>,
-	positionStrategy?: 'transform' | 'position'
+	positionStrategy?: 'transform' | 'position',
+	cornerClass?: string
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -402,7 +403,7 @@ export const Window = ({
 	                       width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight,
 	                       x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized,
 	                       minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose,
-	                       onKeyUp, onKeyPress, onKeyDown, focusRef, positionStrategy
+	                       onKeyUp, onKeyPress, onKeyDown, focusRef, positionStrategy, cornerClass
                        }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
@@ -679,9 +680,9 @@ export const Window = ({
 			{(Object.entries(RESIZE_CLASSES) as [Direction, string][])
 				.map(([direction, c]) => (<div key={direction} {...resize(direction)} className={`${handle} ${c}`} />))}
 
-			{cornerHandle && <div className={`${handle} ${handleStripes} ${cursor.nwseResize}`} {...resize('se')} />}
+			{cornerHandle && <div className={cn(handle, handleStripes, cursor.nwseResize, cornerClass)} {...resize('se')} />}
 		</>);
-	}, [resizable, maximized, cornerHandle, resizingDirection, context, id, updatePrevWindowLayout]);
+	}, [resizable, maximized, cornerHandle, resizingDirection, context, id, updatePrevWindowLayout, cornerClass]);
 
 	const windowElement = useMemo(() => {
 		if (!isOpen && windowingStrategy === 'dom')

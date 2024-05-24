@@ -9,6 +9,18 @@ import { DropdownButton } from '../components/dropdown.tsx';
 import { Check } from '../components/check.tsx';
 import { NOTEPAD_FILES } from '../config.tsx';
 import notepad from '@images/notepad.webp';
+import win98 from '@98.css';
+
+const cornerClass = css`
+	border: solid #fff;
+	border-width: 0 1px 1px 0;
+`;
+
+const container = css`
+  width: 100%;
+	height: 100%;
+	overflow: hidden;
+`;
 
 const notepadText = css`
 	@font-face {
@@ -18,12 +30,14 @@ const notepadText = css`
   }
 	font-family: "Fixedsys", monospace;
 	font-size: 16px;
-	overflow: hidden scroll;
 	resize: none;
 	width: 100%;
 	height: 100%;
-	margin: 0 1px 1px 1px;
+	margin: 0;
 	line-height: 1;
+	padding: 0 2px;
+	box-shadow: none;
+	overflow: hidden scroll;
 `;
 
 const notepadNoWordWrap = css`
@@ -31,13 +45,15 @@ const notepadNoWordWrap = css`
 	text-wrap: nowrap;
 `;
 
-const corner = css`
+const cornerBg = css`
 	position: absolute;
 	right: 3px;
 	bottom: 3px;
 	background: #c0c0c0;
-	width: 16px;
-	height: 16px;
+	width: 17px;
+	height: 18px;
+	border: solid #fff;
+	border-width: 0 1px 1px 0;
 `;
 
 const dropdown = css`min-height: 18px; height: 18px;`
@@ -72,7 +88,7 @@ export const Notepad = () => {
 		}, 0);
 	}, [isOpen, windows])}>
 		<Window title={`${title} - Notepad`} id="notepad.exe" isOpen={isOpen} onClose={close} icon={notepad}
-		        minWidth={100} minHeight={100} x={100} y={100} width={400} height={300} resizable cornerHandle={!wordWrap}>
+		        minWidth={100} minHeight={100} x={100} y={100} width={400} height={300} resizable cornerHandle={!wordWrap} cornerClass={cornerClass}>
 			<MenuBar>
 				<DropdownButton items={[{
 					name: 'New',
@@ -114,11 +130,13 @@ export const Notepad = () => {
 				</DropdownButton>
 
 			</MenuBar>
-			<textarea className={cn(notepadText, !wordWrap && notepadNoWordWrap)} onKeyDown={e => {
-				if (e.key === 'Enter' && !e.ctrlKey && !e.altKey)
-					(e.target as HTMLTextAreaElement).scrollLeft = 0;
-			}} ref={textRef} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck={false} />
-			{!wordWrap && <div className={corner} />}
+			<div className={cn(container, win98.sunkenPanel)}>
+				<textarea className={cn(notepadText, !wordWrap && notepadNoWordWrap)} onKeyDown={e => {
+					if (e.key === 'Enter' && !e.ctrlKey && !e.altKey)
+						(e.target as HTMLTextAreaElement).scrollLeft = 0;
+				}} ref={textRef} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}/>
+			</div>
+			{!wordWrap && <div className={cornerBg}/>}
 		</Window>
 	</Program>)
 };
