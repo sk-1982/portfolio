@@ -7,7 +7,7 @@ import cn from 'clsx/lite';
 import { usePrograms } from './program.tsx';
 
 import shortcut from '@images/shortcut.webp';
-import { DESKTOP_ICONS, IEXPLORE_HOME } from '../config.tsx';
+import { DESKTOP_CONTEXT, DESKTOP_ICONS, IEXPLORE_HOME } from '../config.tsx';
 import { VNode } from 'preact';
 
 const desktop = css`
@@ -97,8 +97,7 @@ export const Desktop = () => {
 	const [selectedIcon, setSelectedIcon] = useState<number | null>(null);
 
 	return (<>
-		<ContextMenu
-			items={[{name: 'Artwork by Brad Barrish', link: 'https://bradbarrish.com'}, '|', {name: 'Settings'}]}>
+		<ContextMenu items={DESKTOP_CONTEXT}>
 			<div className={desktop} onClick={() => {
 				setSelectedIcon(null);
 				windows.setActiveWindow(null);

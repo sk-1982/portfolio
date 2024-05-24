@@ -67,7 +67,7 @@ const menuName = css`padding-right: 16px`;
 
 export type MenuItem = '|' | ({
 	name: string,
-	icon: string,
+	icon?: string,
 	launch?: string[],
 	link?: string,
 	children?: MenuItem[]
