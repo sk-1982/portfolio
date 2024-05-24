@@ -326,7 +326,10 @@ export const WindowContextProvider = ({ children }: { children: ComponentChildre
 	}, [setWindows, setActivationOrder]);
 
 	const setActiveWindow = useCallback((id: string | null) => {
-		setActivationOrder(o => [id, ...o.filter(o => o && o !== id)])
+		setActivationOrder(o => {
+			if (o[0] === id) return o;
+			return [id, ...o.filter(o => o && o !== id)]
+		})
 	}, [setActivationOrder]);
 
 	const [openWindowActivationOrder, activationOrderMap] = useMemo(() => {
@@ -803,7 +806,7 @@ export const Window = ({
 			(focusRef?.current ?? ref.current)?.focus();
 		else
 			(focusRef?.current ?? ref.current)?.blur();
-	}, [context.activeWindow, id]);
+	}, [focusRef, context.activeWindow, id]);
 
 	const preview = useMemo(() => {
 		if (!isMoving && !resizingDirection) return null;
