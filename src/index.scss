@@ -1,6 +1,5 @@
 #app {
   background: url(./assets/images/wallpaper.avif) bottom / cover;
-  transform: translate3d(0,0,0);
 
   @media (min-width: 2000px) {
     background: url(./assets/images/wallpaper-smoothed.avif) bottom / cover;
