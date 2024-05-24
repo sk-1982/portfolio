@@ -52,6 +52,12 @@ const Programs = () => {
 };
 
 export function App() {
+  useEffect(() => {
+    const onContextMenu = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', onContextMenu);
+    return () => document.removeEventListener('contextmenu', onContextMenu);
+  }, []);
+
   return (<Providers>
     <Desktop />
     <Taskbar />
