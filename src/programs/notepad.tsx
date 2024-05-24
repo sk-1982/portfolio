@@ -23,6 +23,7 @@ const notepadText = css`
 	width: 100%;
 	height: 100%;
 	margin: 0 1px 1px 1px;
+	line-height: 1;
 `;
 
 const notepadNoWordWrap = css`
