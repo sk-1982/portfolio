@@ -16,6 +16,7 @@ let onGameReset = () => {};
 let onGameWin = () => {};
 let cardFrontImg = '';
 let cardBackImg = '';
+let initialized = false;
 
 export const load = async () => {
     const [b1, b2] = await Promise.all([
@@ -253,6 +254,7 @@ function dealCards() {
 }
 
 export function resetGame() {
+    if (!initialized) return;
     // clear decks
     for (let i = 0; i < 7; i++) {
         state.desk[i].cards = [];
@@ -683,8 +685,6 @@ const win = (canvasWidth, canvasHeight, canvasLeft, canvasTop) => {
     }
     document.addEventListener('click', removeAnimation, false);
 };
-
-let initialized = false;
 
 export const setEventListeners = (l) => {
     onGameBegin = l?.onGameBegin;

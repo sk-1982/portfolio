@@ -30,14 +30,15 @@ const Solitaire = () => {
 	const [playing, setPlaying] = useState(false);
 	const [startTime, setStartTime] = useState(0);
 	const [elapsed, setElapsed] = useState(0);
+	const [won, setWon] = useState(false);
 
 	useEffect(() => {
-		if (!playing) return;
+		if (!playing || won) return;
 		const interval = setInterval(() => {
 			setElapsed(Math.floor((Date.now() - startTime) / 1000));
 		}, 500);
 		return () => clearInterval(interval);
-	}, [startTime, playing]);
+	}, [startTime, playing, won]);
 
 	useEffect(() => {
 		initSolitaire({
@@ -60,15 +61,22 @@ const Solitaire = () => {
 			onGameReset: () => {
 				setPlaying(false);
 				setElapsed(0);
+				setWon(false);
 			},
-			onGameWin: () => setPlaying(false)
+			onGameWin: () => {
+				setPlaying(false);
+				setWon(true);
+			}
 		})
 
 		return () => setEventListeners(null);
 	}, []);
 
 	return (<Program name="sol.exe" onOpen={useCallback(() => {
-		setOpen(true)
+		setOpen(o => {
+			if (!o) resetGame();
+			return true;
+		});
 		setBg(Math.floor(Math.random() * 12));
 	}, [])}>
 		<Window title="Solitaire" id="sol.exe" isOpen={isOpen} onClose={() => setOpen(false)}
