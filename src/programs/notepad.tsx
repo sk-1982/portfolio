@@ -134,7 +134,7 @@ export const Notepad = () => {
 				<textarea className={cn(notepadText, !wordWrap && notepadNoWordWrap)} onKeyDown={e => {
 					if (e.key === 'Enter' && !e.ctrlKey && !e.altKey)
 						(e.target as HTMLTextAreaElement).scrollLeft = 0;
-				}} ref={textRef} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}/>
+				}} ref={textRef} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck={false} />
 			</div>
 			{!wordWrap && <div className={cornerBg}/>}
 		</Window>
