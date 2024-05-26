@@ -660,6 +660,7 @@ export const InternetExplorer = () => {
 		        icon={iexploreDocumentSmall}
 		        width={window.innerWidth - 100}
 		        height={window.innerHeight - 100}
+		        maximized={window.innerWidth < 680}
 		        isOpen={isOpen} onClose={() => setOpen(false)} resizable>
 			{ renderWindow }
 		</Window>

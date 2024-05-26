@@ -484,7 +484,7 @@ export const Window = ({
 		lastOpen.current = isOpen;
 		if (!isOpen) {
 			setMinimizedRestoreState({ restoreState: null, minimized: false });
-			_setMaximized(false);
+			_setMaximized(!!initialMaximized);
 			setWidth(initialWidth);
 			setHeight(initialHeight);
 			setShouldAnimateUnmaximize(false);
@@ -750,6 +750,7 @@ export const Window = ({
 					className={cn(win98.titleBar, titleBar, context.activeWindow !== id && restoreState !== windowMinimize && win98.inactive)}
 					ref={titleBarRef}
 					onDblClick={() => {
+						if (!resizable) return;
 						setShouldMove(false);
 						setTimeout(() => setMaximized(m => !m), 0);
 					}}
