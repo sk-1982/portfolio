@@ -212,9 +212,9 @@ const pageContainer = css`
 const pageContent = css`
 	* {
     user-select: text;
-    filter: url(#no-antialising);
+    filter: url(#no-antialiasing);
     @supports selector(::-webkit-scrollbar) {
-      filter: url(#no-antialising-webkit);
+      filter: url(#no-antialiasing-webkit);
     }
 	}
 `;
@@ -277,6 +277,16 @@ const favoritesIconContainer = css`
 	margin: 0 10px 1px -1px;
 `;
 
+export const comicSans = css`
+  font-family: "Comic Sans MS", "Comic Sans", cursive !important;
+	filter: url(#black-white) !important;
+	&:is(a, p, b, span) {
+    @supports selector(::-webkit-scrollbar) {
+      filter: url(#black-white-webkit) !important;
+    }
+	}
+`;
+
 export type IExploreContext = {
 	open: (url: string) => void
 };
@@ -286,7 +296,6 @@ export type IEFavorite = {
 	url: string,
 	icon?: string
 };
-
 
 export const InternetExplorer = () => {
 	const [isOpen, setOpen] = useState(false);
@@ -588,23 +597,17 @@ export const InternetExplorer = () => {
 				</MenuBarGroup>}
 				<div className={pageContainer}>
 					<svg width="100%" height="100%">
-						<filter id="no-alpha">
+						{([['no-antialiasing', '0 0.35 0.65 1'],
+							['no-antialiasing-webkit', '0 0.35 0.5 0.6 0.8 1'],
+							['black-white', '0 1'],
+							['black-white-webkit', '0 0.5 1']
+						] as const).map(([id, table]) => (<filter id={id} key={id}>
 							<feComponentTransfer>
-								<feFuncA type="discrete" tableValues="0 1"/>
+								<feFuncA type="discrete" tableValues={table} />
 							</feComponentTransfer>
-						</filter>
-						<filter id="no-antialising">
-							<feComponentTransfer>
-								<feFuncA type="discrete" tableValues="0 0.35 0.65 1"/>
-							</feComponentTransfer>
-						</filter>
-						<filter id="no-antialising-webkit">
-							<feComponentTransfer>
-								<feFuncA type="discrete" tableValues="0 0.45 0.5 0.6 0.8 1"/>
-							</feComponentTransfer>
-						</filter>
+						</filter>))}
 						<foreignObject width="100%" height="100%" className={`${pageContent} ${cursors.pageContainer}`}>
-							{ page }
+							{page}
 						</foreignObject>
 					</svg>
 				</div>
