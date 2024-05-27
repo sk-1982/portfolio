@@ -45,6 +45,8 @@ const iconContainer = css`
 	margin-right: 2px;
 `;
 
+const shortcut = css`margin-left: auto; padding-left: 8px`;
+
 export type MenuItem = {
 	icon?: string | VNode<any>,
 	name: string,
@@ -53,7 +55,8 @@ export type MenuItem = {
 	launch?: string[],
 	link?: string,
 	disabled?: boolean,
-	bold?: boolean
+	bold?: boolean,
+	shortcut?: string
 } | '|' | null | undefined | false;
 
 export type MenuProps = {
@@ -72,6 +75,7 @@ export type MenuItemProps = {
 	className?: string
 };
 
+
 const MenuItem = ({ item, onItemSelected, iconContainerClass, className }: MenuItemProps) => {
 	const programs = usePrograms();
 
@@ -81,6 +85,7 @@ const MenuItem = ({ item, onItemSelected, iconContainerClass, className }: MenuI
 		</div>
 		{item.bold ? <b className={win98.bold}>{item.name}</b> : item.name}
 		{!!item.children?.length && <ChevronRight />}
+		{item.shortcut && <span className={shortcut}>{item.shortcut}</span>}
 	</>);
 
 	const triggers = useHoverTrigger();

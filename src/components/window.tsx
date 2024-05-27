@@ -374,7 +374,8 @@ export type WindowProps = Omit<Window, 'x' | 'y' | 'width' | 'height' | 'maximiz
 	onKeyPress?: (e: KeyboardEvent) => void,
 	focusRef?: MutableRef<HTMLElement | null>,
 	positionStrategy?: 'transform' | 'position',
-	cornerClass?: string
+	cornerClass?: string,
+	stopKeys?: boolean
 };
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'nw' | 'ne' | 'sw' | 'se';
@@ -406,7 +407,7 @@ export const Window = ({
 	                       width: initialWidth = -1, height: initialHeight = -1, resizable, minWidth, minHeight,
 	                       x: initialX = 0, y: initialY = 0, id, maximized: initialMaximized,
 	                       minimized: initialMinimized, isOpen = false, windowingStrategy = 'dom', onClose,
-	                       onKeyUp, onKeyPress, onKeyDown, focusRef, positionStrategy, cornerClass
+	                       onKeyUp, onKeyPress, onKeyDown, focusRef, positionStrategy, cornerClass, stopKeys
                        }: WindowProps) => {
 	const context = useWindows();
 	const lastOpen = useRef<boolean | null>(null);
@@ -741,9 +742,17 @@ export const Window = ({
 		             ref={ref}
 		             tabIndex={-1}
 		             onMouseDown={() => context.setActiveWindow(id)}
-		             onKeyDown={e => { e.stopPropagation(); onKeyDown?.(e) }}
-		             onKeyUp={e => { e.stopPropagation(); onKeyUp?.(e) }}
-		             onKeyPress={e => { e.stopPropagation(); onKeyPress?.(e) }}>
+		             onKeyDown={e => {
+									 stopKeys !== false && e.stopPropagation();
+									 onKeyDown?.(e)
+								 }}
+		             onKeyUp={e => {
+									 stopKeys !== false && e.stopPropagation();
+									 onKeyUp?.(e)
+								 }}
+		             onKeyPress={e => {
+									 stopKeys !== false && e.stopPropagation();
+									 onKeyPress?.(e) }}>
 			{ resizeHandles }
 			<ContextMenu items={menuItems}>
 				<div
@@ -800,7 +809,7 @@ export const Window = ({
 		</div>);
 	}, [resizable, maximized, restoreState, isOpen, shouldAnimateUnmaximize, ref, icon, setMinimized, setMaximized,
 		children, id, context, title, x, y, taskbarX, taskbarWidth, width, height, isMoving, disableAnimations, positionStrategy,
-		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection, onKeyDown, onKeyUp, onKeyPress]);
+		resizeHandles, shouldMove, updatePrevWindowLayout, windowingStrategy, resizingDirection, onKeyDown, onKeyUp, onKeyPress, stopKeys]);
 
 	useEffect(() => {
 		if (context.activeWindow === id)

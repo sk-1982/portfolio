@@ -47,6 +47,7 @@ export default defineConfig(env => ({
       '@images': path.resolve(__dirname, './src/assets/images'),
       '@98.css': path.resolve(__dirname, './src/98.module.scss'),
       '@': path.resolve(__dirname, './src/'),
+      'pinball': path.resolve(__dirname, './submodules/SpaceCadetPinball/bin/SpaceCadetPinball.js'),
       'react': 'preact/compat',
       'react-dom': 'preact/compat',
       // 'preact/debug': 'preact'

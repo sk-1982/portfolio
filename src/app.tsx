@@ -32,6 +32,11 @@ const Programs = () => {
       return (<Minesweeper />);
     }} />
 
+    <DynamicProgram name="pinball.exe" load={async () => {
+      const { load } = await import('./programs/pinball.tsx');
+      return await load();
+    }} />
+
     <DynamicProgram name="sol.exe" load={async () => {
       const { load } = await import('./programs/solitaire.tsx');
       return await load();
@@ -46,6 +51,7 @@ const Programs = () => {
       const { Run } = await import('./programs/run.tsx');
       return (<Run />);
     }} />
+
 
     <InternetExplorer />
   </>);
