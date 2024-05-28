@@ -3,7 +3,33 @@ import { Providers } from './providers.tsx';
 import { DynamicProgram, usePrograms } from './components/program.tsx';
 import { Desktop } from './components/desktop.tsx';
 import { InternetExplorer } from './programs/internet-explorer.tsx';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useContext } from 'preact/hooks';
+import { ScreensaverContext } from './components/screensaver.tsx';
+import { choices } from './utils/random.ts';
+
+const SCREENSAVERS = {
+  '3d flower box.scr': async () => {
+    const { Flowerbox } = (await import('./screensavers/3d-flowerbox'));
+    return (<Flowerbox />);
+  }
+};
+
+const Screensavers = () => {
+  const context = useContext(ScreensaverContext);
+  const programs = usePrograms();
+
+  useEffect(() => {
+    context.setOnIdle(() => {
+      const p = choices(Object.keys(SCREENSAVERS))[0];
+
+      programs.openProgram(p);
+    });
+  }, [programs]);
+
+  return (<>
+    {Object.entries(SCREENSAVERS).map(([k, v]) => <DynamicProgram key={k} name={k} load={v} />)}
+  </>);
+};
 
 const Programs = () => {
   const programs = usePrograms();
@@ -70,6 +96,7 @@ export function App() {
   }, []);
 
   return (<Providers>
+    <Screensavers />
     <Desktop />
     <Taskbar />
     <Programs />

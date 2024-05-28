@@ -71,7 +71,7 @@ export const Run = () => {
 				}
 			}
 		} else {
-			if (programs.openProgram(program.endsWith('.exe') ? program : `${program}.exe`, ...parts.slice(1)))
+			if (programs.openProgram(program.includes('.') ? program : `${program}.exe`, ...parts.slice(1)))
 				return setOpen(false);
 		}
 

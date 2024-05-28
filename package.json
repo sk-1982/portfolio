@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "analyze": "(export ANALYZE=true || set ANALYZE=true) && vite-bundle-visualizer"
   },
   "dependencies": {
     "98.css": "^0.1.20",
@@ -30,6 +31,7 @@
     "incstr": "^1.2.3",
     "postcss": "^8.4.38",
     "sass": "^1.77.2",
+    "spglsl": "^0.2.8",
     "typescript": "^5.4.5",
     "unplugin-inject-preload": "^2.0.3",
     "vite": "^5.2.11",

@@ -12,6 +12,7 @@ import fs from 'fs';
 import { minify } from 'html-minifier-terser';
 import zlib from 'zlib';
 import util from 'util';
+import { rollupPluginSpglsl } from 'spglsl';
 
 const brCompress = util.promisify(zlib.brotliCompress);
 const gzCompress = util.promisify(zlib.gzip);
@@ -40,6 +41,9 @@ export default defineConfig(env => ({
       if (f.includes('src/pages/'))
         return false;
       return undefined;
+    },
+    modulePreload: {
+      polyfill: false
     }
   },
   resolve: {
@@ -152,6 +156,10 @@ export default defineConfig(env => ({
       blocklist: [/select/i],
       safelist: [/data-loading/i]
     }),
+    rollupPluginSpglsl({
+      minify: true,
+      mangle: true
+    }),
     {
       name: 'process-files',
       enforce: 'post',
@@ -159,6 +167,8 @@ export default defineConfig(env => ({
       writeBundle: {
         sequential: true,
         async handler(opts, bundle) {
+          if (process.env.ANALYZE) return;
+
           const output: string[] = [];
 
           await Promise.all(Object.keys(bundle).map(async file => {
