@@ -95,10 +95,12 @@ const Pinball = () => {
 				pinball._main();
 			}
 		} else if (isOpen) {
+			pinball._resume_main_loop();
 			pinball._resume_game();
 			pinball._new_game();
 		} else {
 			pinball._pause_game();
+			pinball._pause_main_loop();
 		}
 
 	}, [isOpen]);

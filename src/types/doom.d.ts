@@ -6,6 +6,8 @@ declare module 'doom' {
 		_mute: () => void,
 		_unmute: () => void,
 		_end_game: () => void,
+		_pause_main_loop: () => void,
+		_resume_main_loop: () => void,
 		onQuit: () => void,
 		canvas: HTMLCanvasElement,
 		locateFile: (path: string, prefix: string) => string,

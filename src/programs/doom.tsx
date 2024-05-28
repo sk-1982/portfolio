@@ -30,12 +30,14 @@ const Doom = () => {
 				doom.callMain(['-iwad', '/doom.wad']);
 			}
 		} else if (isOpen) {
+			doom._resume_main_loop();
 			doom._end_game();
 			doom._unmute();
 			doom._unpause_game();
 		} else {
 			doom._mute();
 			doom._pause_game();
+			doom._pause_main_loop();
 		}
 	}, [isOpen])
 

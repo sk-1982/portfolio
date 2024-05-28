@@ -17,6 +17,8 @@ declare module 'pinball' {
 		_resume_game: () => void,
 		_show_highscores: () => void,
 		_reset_high_scores: () => void,
+		_pause_main_loop: () => void,
+		_resume_main_loop: () => void,
 		locateFile: (path: string, prefix: string) => string,
 		canvas: HTMLCanvasElement,
 		showHighScoreDialog: () => void,

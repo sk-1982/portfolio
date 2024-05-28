@@ -9,7 +9,7 @@ index 1753fa8..bc7c68b 100644
 +build
 +game_resources/*
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index fca48f3..2dab21f 100644
+index fca48f3..f56167a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -16,7 +16,7 @@ if(WIN32)
@@ -26,7 +26,7 @@ index fca48f3..2dab21f 100644
          target_link_libraries(SpaceCadetPinball idbfs.js)
          set_target_properties(SpaceCadetPinball PROPERTIES LINK_FLAGS
 -        "-s ALLOW_MEMORY_GROWTH=1 -s FORCE_FILESYSTEM=1 -s DEMANGLE_SUPPORT=1 \
-+        "-flto -O3 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0 -s ALLOW_MEMORY_GROWTH=1 -s FORCE_FILESYSTEM=1 -s DEMANGLE_SUPPORT=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s INVOKE_RUN=0 -s EXPORTED_FUNCTIONS=_main,_high_score_entered,_toggle_pause,_new_game,_launch_ball,_demo,_set_players,_set_music,_set_sound,_show_highscores,_pause_game,_resume_game,_reset_high_scores -s EXPORTED_RUNTIME_METHODS=UTF8ToString,stringToNewUTF8 \
++        "-flto -O3 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0 -s ALLOW_MEMORY_GROWTH=1 -s FORCE_FILESYSTEM=1 -s DEMANGLE_SUPPORT=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s INVOKE_RUN=0 -s EXPORTED_FUNCTIONS=_main,_high_score_entered,_toggle_pause,_new_game,_launch_ball,_demo,_set_players,_set_music,_set_sound,_show_highscores,_pause_game,_resume_game,_reset_high_scores,_pause_main_loop,_resume_main_loop -s EXPORTED_RUNTIME_METHODS=UTF8ToString,stringToNewUTF8 \
          --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/SpaceCadetPinball/emscripten_shell.html \
          --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/game_resources@game_resources --bind")
  endif()
@@ -525,7 +525,7 @@ index a57e05c..4120b03 100644
  	static void SetSetting(const std::string& key, const std::string& value);
  };
 diff --git a/SpaceCadetPinball/winmain.cpp b/SpaceCadetPinball/winmain.cpp
-index 4f78055..6dc4615 100644
+index 4f78055..0ba51bd 100644
 --- a/SpaceCadetPinball/winmain.cpp
 +++ b/SpaceCadetPinball/winmain.cpp
 @@ -62,7 +62,7 @@ void run_loop(std::function<void()> fn)
@@ -1047,7 +1047,7 @@ index 4f78055..6dc4615 100644
  }
  
  void winmain::end_pause()
-@@ -834,3 +834,51 @@ void winmain::UpdateFrameRate()
+@@ -834,3 +834,57 @@ void winmain::UpdateFrameRate()
  	UpdateToFrameRatio = static_cast<double>(ups) / fps;
  	TargetFrameTime = DurationMs(1000.0 / ups);
  }
@@ -1098,6 +1098,12 @@ index 4f78055..6dc4615 100644
 +        if (winmain::single_step)
 +            winmain::pause();
 +    }
++	void EMSCRIPTEN_KEEPALIVE pause_main_loop() {
++		emscripten_pause_main_loop();
++	}
++	void EMSCRIPTEN_KEEPALIVE resume_main_loop() {
++		emscripten_resume_main_loop();
++	}
 +}
 diff --git a/SpaceCadetPinball/winmain.h b/SpaceCadetPinball/winmain.h
 index f40f42d..38fd375 100644
