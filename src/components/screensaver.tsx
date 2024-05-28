@@ -1,6 +1,6 @@
 import { css } from '@linaria/core';
 import { taskbarZIndex } from '@/css';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { MutableRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { Program } from './program.tsx';
 import { cloneElement, ComponentChildren, createContext, VNode } from 'preact';
 import { useChange } from '../hooks/use-change.ts';
@@ -11,8 +11,10 @@ const screensaver = css`
 		z-index: ${taskbarZIndex * 2};
 		width: 100%;
 		height: 100%;
-		cursor: none !important;
 		background: #000;
+		&, & * {
+        cursor: none !important;
+    }
 `;
 
 export type ScreensaverProps = {
@@ -25,19 +27,22 @@ export type ScreensaverProps = {
 type ScreensaverContextValue = {
 	registerOnClose: (onClose: () => void) => void,
 	onOpen: () => void,
-	setOnIdle: (onIdle: () => void) => void
+	setOnIdle: (onIdle: () => void) => void,
+	lastOpen: MutableRef<number>,
 };
 
 export const ScreensaverContext = createContext<ScreensaverContextValue>({
 	registerOnClose: () => {},
 	onOpen: () => {},
-	setOnIdle: () => {}
+	setOnIdle: () => {},
+	lastOpen: { current: 0 }
 });
 
 export const ScreensaverContextProvider = ({ children }: { children: ComponentChildren }) => {
 	const onClose = useRef<(() => void)[]>([]);
 	const screensaverOpen = useRef(false);
 	const onIdle = useRef(() => {});
+	const lastOpen = useRef(0);
 
 	useEffect(() => {
 		let timeout: ReturnType<typeof setTimeout> | null = null;
@@ -65,7 +70,7 @@ export const ScreensaverContextProvider = ({ children }: { children: ComponentCh
 
 		const listener = () => {
 			refreshTimeout();
-			if (!screensaverOpen.current) return;
+			if (!screensaverOpen.current || Date.now() - lastOpen.current < 1000) return;
 			onClose.current.forEach(c => c());
 			screensaverOpen.current = false;
 		};
@@ -87,6 +92,7 @@ export const ScreensaverContextProvider = ({ children }: { children: ComponentCh
 			registerOnClose: listener => onClose.current.push(listener),
 			onOpen: () => screensaverOpen.current = true,
 			setOnIdle: l => onIdle.current = l,
+			lastOpen
 		} as ScreensaverContextValue;
 	}, [])
 
@@ -107,6 +113,7 @@ export const Screensaver = ({ name, children, onOpen, onClose }: ScreensaverProp
 		if (isOpen) {
 			onOpen?.();
 			context.onOpen();
+			context.lastOpen.current = Date.now();
 		} else {
 			onClose?.();
 		}

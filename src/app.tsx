@@ -15,6 +15,10 @@ const SCREENSAVERS = {
   '3d maze.scr': async () => {
     const { Maze } = await import('./screensavers/3d-maze');
     return (<Maze />);
+  },
+  '3d pipes.scr': async () => {
+    const { Pipes } = await import('./screensavers/3d-pipes');
+    return (<Pipes />);0
   }
 };
 
