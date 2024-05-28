@@ -9,7 +9,8 @@
       "react": ["./node_modules/preact/compat/"],
       "react-dom": ["./node_modules/preact/compat/"],
       "@/css": ["./src/css.ts"],
-      "pinball": ["./submodules/SpaceCadetPinball/bin/SpaceCadetPinball.js"]
+      "pinball": ["./submodules/SpaceCadetPinball/bin/SpaceCadetPinball.js"],
+      "doom":  ["./submodules/wasmDOOM/public/wasm/wasm-doom.js"],
     },
 
     /* Bundler mode */

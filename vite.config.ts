@@ -48,6 +48,7 @@ export default defineConfig(env => ({
       '@98.css': path.resolve(__dirname, './src/98.module.scss'),
       '@': path.resolve(__dirname, './src/'),
       'pinball': path.resolve(__dirname, './submodules/SpaceCadetPinball/bin/SpaceCadetPinball.js'),
+      'doom': path.resolve(__dirname, './submodules/wasmDOOM/public/wasm/wasm-doom.js'),
       'react': 'preact/compat',
       'react-dom': 'preact/compat',
       // 'preact/debug': 'preact'

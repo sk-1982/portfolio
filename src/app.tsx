@@ -37,6 +37,11 @@ const Programs = () => {
       return await load();
     }} />
 
+    <DynamicProgram name="doom.exe" load={async () => {
+      const { load } = await import('./programs/doom.tsx');
+      return await load();
+    }} />
+
     <DynamicProgram name="sol.exe" load={async () => {
       const { load } = await import('./programs/solitaire.tsx');
       return await load();

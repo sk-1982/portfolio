@@ -5,3 +5,7 @@
 	path = submodules/SpaceCadetPinball
 	url = https://github.com/alula/SpaceCadetPinball.git
 	ignore = dirty
+[submodule "submodules/wasmDOOM"]
+	path = submodules/wasmDOOM
+	url = https://github.com/VanIseghemThomas/wasmDOOM.git
+	ignore = dirty
