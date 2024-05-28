@@ -11,6 +11,10 @@ const SCREENSAVERS = {
   '3d flower box.scr': async () => {
     const { Flowerbox } = (await import('./screensavers/3d-flowerbox'));
     return (<Flowerbox />);
+  },
+  '3d maze.scr': async () => {
+    const { Maze } = await import('./screensavers/3d-maze');
+    return (<Maze />);
   }
 };
 

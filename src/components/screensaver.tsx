@@ -12,6 +12,7 @@ const screensaver = css`
 		width: 100%;
 		height: 100%;
 		cursor: none !important;
+		background: #000;
 `;
 
 export type ScreensaverProps = {
