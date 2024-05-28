@@ -386,7 +386,10 @@ export const Minesweeper = () => {
 			revealCell(x, y);
 	}, [revealCell, flags, gameState]);
 
-	return (<Program name="winmine.exe" onOpen={useCallback(() => setOpen(true), [])}>
+	return (<Program name="winmine.exe" onOpen={useCallback(() => {
+		setOpen(true);
+		reset();
+	}, [reset])}>
 		<Window title="Congratulations" id="winmine-highscore" isOpen={highscoreOpen} onClose={() => setHighscoreOpen(false)}
 		        width={228} height={139} x={-1} y={-1}>
 			<div className={highscoreContent}>
