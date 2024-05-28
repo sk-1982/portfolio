@@ -64,7 +64,8 @@ export const ScreensaverContextProvider = ({ children }: { children: ComponentCh
 				clearTimeout(timeout);
 			timeout = setTimeout(() => {
 				timeout = null;
-				onIdle.current();
+				if (!screensaverOpen.current)
+					onIdle.current();
 			}, 60 * 1000 * 10);
 		};
 
